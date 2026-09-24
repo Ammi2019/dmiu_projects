@@ -4,11 +4,15 @@ const pool = require('../db');
 
 const router = express.Router();
 
+// Public registration always creates a 'student' account. Lecturer/head_of_department
+// accounts are created separately via the staff-only POST /lecturers route — this endpoint
+// no longer trusts a client-supplied role, since anyone could otherwise register themselves
+// as head_of_department.
 router.post('/register', async (req, res) => {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
 
-    if (!name || !email || !password || !role) {
-        return res.status(400).send('All fields are required.');
+    if (!name || !email || !password) {
+        return res.status(400).send('Name, email, and password are required.');
     }
 
     try {
@@ -16,12 +20,15 @@ router.post('/register', async (req, res) => {
 
         await pool.query(
             'INSERT INTO USERS (name, email, password, role) VALUES (?, ?, ?, ?)',
-            [name, email, hashedPassword, role]
+            [name, email, hashedPassword, 'student']
         );
 
         res.status(201).send('User registered successfully.');
     } catch (err) {
         console.error(err);
+        if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(409).send('An account with that email already exists.');
+        }
         res.status(500).send('Registration failed.');
     }
 });

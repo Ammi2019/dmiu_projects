@@ -5,6 +5,10 @@ require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const departmentRoutes = require('./routes/departments');
 const courseRoutes = require('./routes/courses');
+const lecturersRoutes = require('./routes/lecturers');
+const studentsRoutes = require('./routes/students');
+const sectionsRoutes = require('./routes/sections');
+const enrollmentsRoutes = require('./routes/enrollments');
 const { requireLogin, requireRole } = require('./middleware/auth');
 
 const app = express();
@@ -16,9 +20,16 @@ app.use(session({
     saveUninitialized: false
 }));
 
+// Serve the frontend (login.html, register.html, css/, js/) from public/
+app.use(express.static('public'));
+
 app.use('/auth', authRoutes);
 app.use('/departments', departmentRoutes);
 app.use('/courses', courseRoutes);
+app.use('/lecturers', lecturersRoutes);
+app.use('/students', studentsRoutes);
+app.use('/sections', sectionsRoutes);
+app.use('/enrollments', enrollmentsRoutes);
 
 app.get('/', (req, res) => {
     res.send('University website running.');
