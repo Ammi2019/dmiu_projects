@@ -1,0 +1,17 @@
+{
+  "_note": "Weights must add up to 100. 'ca' marks a component as continuous assessment; the rest is the exam. The grade scale below is a PLACEHOLDER — replace it with the university's official scale.",
+  "components": [
+    { "key": "a1",  "label": "Assignment 1",  "short": "Asg 1", "weight": 10, "ca": true },
+    { "key": "a2",  "label": "Assignment 2",  "short": "Asg 2", "weight": 10, "ca": true },
+    { "key": "mid", "label": "Mid-semester",  "short": "Mid",   "weight": 20, "ca": true },
+    { "key": "end", "label": "End-semester exam", "short": "End", "weight": 60, "ca": false }
+  ],
+  "passMark": 50,
+  "grades": [
+    { "min": 80, "grade": "A", "remark": "Distinction" },
+    { "min": 70, "grade": "B", "remark": "Merit" },
+    { "min": 60, "grade": "C", "remark": "Credit" },
+    { "min": 50, "grade": "D", "remark": "Pass" },
+    { "min": 0,  "grade": "F", "remark": "Fail" }
+  ]
+}

@@ -1,138 +1,226 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
 const pool = require('../db');
-const { requireLogin, requireRole } = require('../middleware/auth');
+const { verifyToken, checkRole } = require('../middleware/auth');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const router = express.Router();
 
-// GET all students — joined to USERS (name/email) and departments (name)
-router.get('/', requireLogin, async (req, res) => {
+// ===== Student profile storage =====
+
+const photoDir = path.join(__dirname, '..', 'uploads', 'profiles');
+fs.mkdirSync(photoDir, { recursive: true });
+
+const photoUpload = multer({
+    storage: multer.diskStorage({
+        destination: (req, file, cb) => cb(null, photoDir),
+        filename: (req, file, cb) => {
+            const ext = file.mimetype === 'image/png' ? '.png' : '.jpg';
+            cb(null, `student-${req.user.id}-${Date.now()}${ext}`);
+        }
+    }),
+    fileFilter: (req, file, cb) => {
+        if (['image/png', 'image/jpeg'].includes(file.mimetype)) cb(null, true);
+        else cb(new Error('Only PNG and JPEG photos are allowed.'));
+    },
+    limits: { fileSize: 5 * 1024 * 1024 }
+});
+
+// Find the logged-in user's student record
+async function getMyStudentId(userId) {
+    const [rows] = await pool.query('SELECT student_id FROM students WHERE user_id = ?', [userId]);
+    return rows.length ? rows[0].student_id : null;
+}
+
+const PHONE_PATTERN = /^\+?[0-9 ()-]{7,20}$/;
+
+// GET all students — restricted to class teachers (lecturers) and administrator
+router.get('/', verifyToken, checkRole('class_teacher', 'administrator'), async (req, res) => {
     try {
         const [rows] = await pool.query(
-            `SELECT students.student_id, students.user_id, students.department_id,
-                    students.date_or_birth, students.enrollment_date,
-                    USERS.name, USERS.email,
-                    departments.name AS department_name
-             FROM students
-             JOIN USERS ON students.user_id = USERS.user_id
-             LEFT JOIN departments ON students.department_id = departments.department_id`
+            "SELECT s.student_id, s.user_id, s.department_id, s.date_of_birth, s.enrollment_date, s.school, s.programme, u.name, u.email, d.name AS department_name FROM students s JOIN USERS u ON s.user_id = u.user_id LEFT JOIN departments d ON s.department_id = d.department_id"
         );
         res.json(rows);
     } catch (err) {
         console.error(err);
-        res.status(500).send('Failed to fetch students.');
+        res.status(500).send("Failed to fetch students.");
     }
 });
 
-// GET single student
-router.get('/:id', requireLogin, async (req, res) => {
+// ===== Student self-service (these must come before the '/:id' routes) =====
+
+// GET my own profile — student record + editable profile details
+router.get('/me', verifyToken, checkRole('student'), async (req, res) => {
     try {
         const [rows] = await pool.query(
-            `SELECT students.student_id, students.user_id, students.department_id,
-                    students.date_or_birth, students.enrollment_date,
-                    USERS.name, USERS.email,
-                    departments.name AS department_name
-             FROM students
-             JOIN USERS ON students.user_id = USERS.user_id
-             LEFT JOIN departments ON students.department_id = departments.department_id
-             WHERE students.student_id = ?`,
-            [req.params.id]
+            `SELECT s.student_id,
+                    DATE_FORMAT(s.date_of_birth, '%Y-%m-%d') AS date_of_birth,
+                    DATE_FORMAT(s.enrollment_date, '%Y-%m-%d') AS enrollment_date,
+                    u.name, u.email, d.name AS department_name,
+                    s.school, s.programme,
+                    p.phone, p.address, p.next_of_kin_name, p.next_of_kin_phone,
+                    (p.photo_path IS NOT NULL) AS has_photo
+             FROM students s
+             JOIN USERS u ON s.user_id = u.user_id
+             LEFT JOIN departments d ON s.department_id = d.department_id
+             LEFT JOIN student_profiles p ON p.student_id = s.student_id
+             WHERE s.user_id = ?`,
+            [req.user.id]
         );
-        if (rows.length === 0) {
-            return res.status(404).send('Student not found.');
-        }
+        if (rows.length === 0) return res.status(404).send("No student record is linked to your account.");
         res.json(rows[0]);
     } catch (err) {
         console.error(err);
-        res.status(500).send('Failed to fetch student.');
+        res.status(500).send("Failed to fetch your student record.");
     }
 });
 
-// REGISTER student — inserts a USERS row (role forced to 'student') and a students row together
-router.post('/register', async (req, res) => {
-    const { name, email, password, date_of_birth, enrollment_date, department_id } = req.body;
+// UPDATE my own profile — students can change their personal/contact details only
+// (name, email, department and student ID are managed by the administration)
+router.put('/me', verifyToken, checkRole('student'), async (req, res) => {
+    const clean = v => (typeof v === 'string' && v.trim() !== '' ? v.trim() : null);
+    const date_of_birth = clean(req.body.date_of_birth);
+    const phone = clean(req.body.phone);
+    const address = clean(req.body.address);
+    const next_of_kin_name = clean(req.body.next_of_kin_name);
+    const next_of_kin_phone = clean(req.body.next_of_kin_phone);
 
-    if (!name || !email || !password) {
-        return res.status(400).send('Name, email, and password are required.');
+    if (date_of_birth && (isNaN(Date.parse(date_of_birth)) || new Date(date_of_birth) > new Date())) {
+        return res.status(400).send('Please enter a valid date of birth.');
+    }
+    if (phone && !PHONE_PATTERN.test(phone)) {
+        return res.status(400).send('Please enter a valid phone number.');
+    }
+    if (next_of_kin_phone && !PHONE_PATTERN.test(next_of_kin_phone)) {
+        return res.status(400).send("Please enter a valid next of kin phone number.");
+    }
+    if (address && address.length > 255) {
+        return res.status(400).send('Address is too long.');
     }
 
-    const connection = await pool.getConnection();
     try {
-        await connection.beginTransaction();
+        const studentId = await getMyStudentId(req.user.id);
+        if (!studentId) return res.status(404).send("No student record is linked to your account.");
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Insert into USERS
-        const [userResult] = await connection.query(
-            'INSERT INTO USERS (name, email, password, role) VALUES (?, ?, ?, ?)',
-            [name, email, hashedPassword, 'student']
+        await pool.query('UPDATE students SET date_of_birth = ? WHERE student_id = ?', [date_of_birth, studentId]);
+        await pool.query(
+            `INSERT INTO student_profiles (student_id, phone, address, next_of_kin_name, next_of_kin_phone)
+             VALUES (?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE phone = VALUES(phone), address = VALUES(address),
+                 next_of_kin_name = VALUES(next_of_kin_name), next_of_kin_phone = VALUES(next_of_kin_phone)`,
+            [studentId, phone, address, next_of_kin_name, next_of_kin_phone]
         );
-
-        // Insert into students (student_id auto-increments)
-        const [studentResult] = await connection.query(
-            'INSERT INTO students (user_id, date_or_birth, enrollment_date, department_id) VALUES (?, ?, ?, ?)',
-            [userResult.insertId, date_of_birth || null, enrollment_date || null, department_id || null]
-        );
-
-        await connection.commit();
-
-        res.status(201).json({
-            student_id: studentResult.insertId,
-            user_id: userResult.insertId,
-            name,
-            email,
-            date_of_birth,
-            enrollment_date,
-            department_id
-        });
+        res.send('Profile updated successfully.');
     } catch (err) {
-        await connection.rollback();
         console.error(err);
-        if (err.code === 'ER_DUP_ENTRY') {
-            return res.status(409).send('A user with that email already exists.');
-        }
-        res.status(500).send('Failed to create student.');
-    } finally {
-        connection.release();
+        res.status(500).send('Failed to update profile.');
     }
 });
 
-// UPDATE student — updates the students row only (dob/enrollment/department).
-// Name/email/password live on USERS and aren't touched here.
-router.put('/:id', requireRole('head_of_department', 'class_teacher'), async (req, res) => {
+// UPLOAD my profile photo
+router.post('/me/photo', verifyToken, checkRole('student'), (req, res, next) => {
+    photoUpload.single('photo')(req, res, err => {
+        if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).send('Photo is too large. Maximum size is 5MB.');
+        }
+        if (err) return res.status(400).send(err.message || 'Upload failed.');
+        next();
+    });
+}, async (req, res) => {
+    if (!req.file) return res.status(400).send('No photo uploaded.');
+
+    try {
+        const studentId = await getMyStudentId(req.user.id);
+        if (!studentId) {
+            fs.unlink(req.file.path, () => {});
+            return res.status(404).send("No student record is linked to your account.");
+        }
+
+        const [old] = await pool.query('SELECT photo_path FROM student_profiles WHERE student_id = ?', [studentId]);
+
+        await pool.query(
+            `INSERT INTO student_profiles (student_id, photo_path) VALUES (?, ?)
+             ON DUPLICATE KEY UPDATE photo_path = VALUES(photo_path)`,
+            [studentId, req.file.filename]
+        );
+
+        // Remove the previous photo file so old uploads don't pile up
+        if (old.length && old[0].photo_path) {
+            fs.unlink(path.join(photoDir, path.basename(old[0].photo_path)), () => {});
+        }
+
+        res.send('Photo uploaded successfully.');
+    } catch (err) {
+        console.error(err);
+        fs.unlink(req.file.path, () => {});
+        res.status(500).send('Failed to save photo.');
+    }
+});
+
+// GET my profile photo
+router.get('/me/photo', verifyToken, checkRole('student'), async (req, res) => {
+    try {
+        const [rows] = await pool.query(
+            `SELECT p.photo_path FROM student_profiles p
+             JOIN students s ON p.student_id = s.student_id
+             WHERE s.user_id = ?`,
+            [req.user.id]
+        );
+        if (rows.length === 0 || !rows[0].photo_path) return res.status(404).send('No photo set.');
+        res.sendFile(path.join(photoDir, path.basename(rows[0].photo_path)));
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Failed to fetch photo.');
+    }
+});
+
+// GET single student — any logged-in user can view
+router.get('/:id', verifyToken, async (req, res) => {
+    try {
+        const [rows] = await pool.query(
+            "SELECT s.student_id, s.user_id, s.department_id, s.date_of_birth, s.enrollment_date, u.name, u.email, d.name AS department_name FROM students s JOIN USERS u ON s.user_id = u.user_id LEFT JOIN departments d ON s.department_id = d.department_id WHERE s.student_id = ?",
+            [req.params.id]
+        );
+        if (rows.length === 0) return res.status(404).send("Student not found.");
+        res.json(rows[0]);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Failed to fetch student.");
+    }
+});
+
+// UPDATE student — restricted to administrator or class_teacher
+router.put('/:id', verifyToken, checkRole('administrator', 'class_teacher'), async (req, res) => {
     const { date_of_birth, enrollment_date, department_id } = req.body;
 
     try {
         const [result] = await pool.query(
-            'UPDATE students SET date_or_birth = ?, enrollment_date = ?, department_id = ? WHERE student_id = ?',
+            "UPDATE students SET date_of_birth = ?, enrollment_date = ?, department_id = ? WHERE student_id = ?",
             [date_of_birth, enrollment_date, department_id, req.params.id]
         );
-        if (result.affectedRows === 0) {
-            return res.status(404).send('Student not found.');
-        }
-        res.send('Student updated successfully.');
+        if (result.affectedRows === 0) return res.status(404).send("Student not found.");
+        res.send("Student updated successfully.");
     } catch (err) {
         console.error(err);
-        res.status(500).send('Failed to update student.');
+        res.status(500).send("Failed to update student.");
     }
 });
 
-// DELETE student — removes the students row only. The linked USERS row (their login) is left intact.
-router.delete('/:id', requireRole('head_of_department', 'class_teacher'), async (req, res) => {
+// DELETE student — restricted to administrator or class_teacher
+router.delete('/:id', verifyToken, checkRole('administrator', 'class_teacher'), async (req, res) => {
     try {
+        await pool.query("DELETE FROM student_profiles WHERE student_id = ?", [req.params.id]);
         const [result] = await pool.query(
-            'DELETE FROM students WHERE student_id = ?',
+            "DELETE FROM students WHERE student_id = ?",
             [req.params.id]
         );
-        if (result.affectedRows === 0) {
-            return res.status(404).send('Student not found.');
-        }
-        res.send('Student deleted successfully.');
+        if (result.affectedRows === 0) return res.status(404).send("Student not found.");
+        res.send("Student deleted successfully.");
     } catch (err) {
         console.error(err);
-        res.status(500).send('Failed to delete student.');
+        res.status(500).send("Failed to delete student.");
     }
 });
 
 module.exports = router;
-

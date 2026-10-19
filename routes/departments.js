@@ -1,11 +1,11 @@
 const express = require('express');
 const pool = require('../db');
-const { requireLogin, requireRole } = require('../middleware/auth');
+const { verifyToken, checkRole } = require('../middleware/auth');
 
 const router = express.Router();
 
-// GET all departments — any logged-in user
-router.get('/', requireLogin, async (req, res) => {
+// GET all departments — public (needed for the application form dropdown)
+router.get('/', async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM departments');
         res.json(rows);
@@ -15,8 +15,8 @@ router.get('/', requireLogin, async (req, res) => {
     }
 });
 
-// GET one department by ID — any logged-in user
-router.get('/:id', requireLogin, async (req, res) => {
+// GET one department by ID — public
+router.get('/:id', async (req, res) => {
     try {
         const [rows] = await pool.query(
             'SELECT * FROM departments WHERE department_id = ?',
@@ -32,8 +32,8 @@ router.get('/:id', requireLogin, async (req, res) => {
     }
 });
 
-// CREATE a department — head_of_department only
-router.post('/', requireRole('head_of_department'), async (req, res) => {
+// CREATE a department — administrator only
+router.post('/', verifyToken, checkRole('administrator'), async (req, res) => {
     const { name, building, budget } = req.body;
 
     if (!name) {
@@ -49,42 +49,6 @@ router.post('/', requireRole('head_of_department'), async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send('Failed to create department.');
-    }
-});
-
-// UPDATE a department — head_of_department only
-router.put('/:id', requireRole('head_of_department'), async (req, res) => {
-    const { name, building, budget } = req.body;
-
-    try {
-        const [result] = await pool.query(
-            'UPDATE departments SET name = ?, building = ?, budget = ? WHERE department_id = ?',
-            [name, building, budget, req.params.id]
-        );
-        if (result.affectedRows === 0) {
-            return res.status(404).send('Department not found.');
-        }
-        res.send('Department updated successfully.');
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Failed to update department.');
-    }
-});
-
-// DELETE a department — head_of_department only
-router.delete('/:id', requireRole('head_of_department'), async (req, res) => {
-    try {
-        const [result] = await pool.query(
-            'DELETE FROM departments WHERE department_id = ?',
-            [req.params.id]
-        );
-        if (result.affectedRows === 0) {
-            return res.status(404).send('Department not found.');
-        }
-        res.send('Department deleted successfully.');
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Failed to delete department.');
     }
 });
 

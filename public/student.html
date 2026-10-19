@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Student Dashboard — DMISEU Chipata Campus</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <h1>Student Dashboard</h1>
+  </header>
+
+  <!-- Identity banner: shown on every tab -->
+  <section class="id-banner" aria-label="Student identity">
+    <img id="banner-photo" class="id-photo" src="/images/default-avatar.svg" alt="Profile photo">
+    <div class="id-text">
+      <span class="id-name" id="banner-name">–</span>
+      <span class="id-number">Student ID: <strong id="banner-id">–</strong></span>
+      <span class="id-dept" id="banner-dept"></span>
+    </div>
+  </section>
+
+  <nav class="tabs" role="tablist">
+    <div class="tab active" data-tab="tab-overview" role="tab">Overview</div>
+    <div class="tab" data-tab="tab-courses" role="tab">My Courses</div>
+    <div class="tab" data-tab="tab-enroll" role="tab">Enroll</div>
+    <div class="tab" data-tab="tab-library" role="tab">Library</div>
+    <div class="tab" data-tab="tab-assignments" role="tab">Assignments</div>
+    <div class="tab" data-tab="tab-results" role="tab">Results</div>
+    <div class="tab" data-tab="tab-registration" role="tab">Registration</div>
+    <div class="tab" data-tab="tab-fees" role="tab">Fees</div>
+    <div class="tab" data-tab="tab-exams" role="tab">Exams</div>
+    <div class="tab" data-tab="tab-profile" role="tab">My Profile</div>
+    <div class="tab" data-tab="tab-account" role="tab">Account</div>
+  </nav>
+
+  <main>
+    <!-- Overview -->
+    <section id="tab-overview" class="tab-content active">
+      <h2>Overview</h2>
+      <div class="stat-row">
+        <div class="stat-card">
+          <span class="stat-label">Courses enrolled</span>
+          <span class="stat-value" id="stat-courses">–</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Total credits</span>
+          <span class="stat-value" id="stat-credits">–</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Graded courses</span>
+          <span class="stat-value" id="stat-graded">–</span>
+        </div>
+      </div>
+
+      <h3>My details</h3>
+      <dl class="details-list">
+        <dt>Name</dt><dd id="me-name">–</dd>
+        <dt>Email</dt><dd id="me-email">–</dd>
+        <dt>Student ID</dt><dd id="me-id">–</dd>
+        <dt>Programme</dt><dd id="me-programme">–</dd>
+        <dt>School</dt><dd id="me-school">–</dd>
+        <dt>Department</dt><dd id="me-department">–</dd>
+        <dt>Date of birth</dt><dd id="me-dob">–</dd>
+        <dt>Joined</dt><dd id="me-joined">–</dd>
+        <dt>Phone</dt><dd id="me-phone">–</dd>
+        <dt>Address</dt><dd id="me-address">–</dd>
+        <dt>Next of kin</dt><dd id="me-kin">–</dd>
+      </dl>
+      <p id="overview-message" class="message" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- My Courses -->
+    <section id="tab-courses" class="tab-content">
+      <h2>My Courses</h2>
+      <p id="courses-message" class="message" role="status" aria-live="polite"></p>
+      <div class="table-wrap">
+        <table class="data-table" id="my-courses-table">
+          <thead>
+            <tr>
+              <th>Code</th><th>Course</th><th>Credits</th><th>Semester</th>
+              <th>Lecturer</th><th>Room</th><th>Grade</th><th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="empty-state" id="my-courses-empty" hidden>
+        You are not enrolled in any courses yet. Go to the <strong>Enroll</strong> tab to pick some.
+      </p>
+    </section>
+
+    <!-- Enroll -->
+    <section id="tab-enroll" class="tab-content">
+      <h2>Enroll in a Course</h2>
+      <div class="toolbar">
+        <label for="section-search" class="visually-hidden">Search courses</label>
+        <input type="search" id="section-search" placeholder="Search by code, title, lecturer or department">
+      </div>
+      <p id="enroll-message" class="message" role="status" aria-live="polite"></p>
+      <div class="table-wrap">
+        <table class="data-table" id="sections-table">
+          <thead>
+            <tr>
+              <th>Code</th><th>Course</th><th>Department</th><th>Credits</th>
+              <th>Semester</th><th>Lecturer</th><th>Seats</th><th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="empty-state" id="sections-empty" hidden>No course sections match.</p>
+    </section>
+
+    <!-- Library: course notes Units 1–5 -->
+    <section id="tab-library" class="tab-content">
+      <h2>Library</h2>
+      <p class="section-hint" id="lib-intro">Course notes from your lecturers, Unit 1 to Unit 5 for each course.</p>
+      <div class="filter-bar">
+        <input type="search" id="lib-search" class="filter-search" placeholder="Search courses or unit titles">
+      </div>
+      <p id="lib-message" class="message" role="status" aria-live="polite"></p>
+      <div id="lib-list" class="lib-list"></div>
+      <p class="empty-state" id="lib-empty" hidden>No course notes have been posted for your programme yet.</p>
+    </section>
+
+    <!-- Assignments -->
+    <section id="tab-assignments" class="tab-content">
+      <h2>Assignments</h2>
+      <p class="section-hint" id="sa-intro"></p>
+      <p id="sa-message" class="message" role="status" aria-live="polite"></p>
+
+      <div class="notice notice-warn" id="sa-no-programme" hidden>
+        Your account does not have a school and programme recorded yet, so no assignments can be shown.
+        Please contact the registry.
+      </div>
+
+      <div class="sa-groups" id="sa-groups">
+        <section class="sa-group">
+          <h3><span class="asg-no">Assignment 1</span></h3>
+          <div class="sa-list" id="sa-list-1"></div>
+          <p class="empty-state" id="sa-empty-1" hidden>No Assignment 1 has been posted for your programme yet.</p>
+        </section>
+        <section class="sa-group">
+          <h3><span class="asg-no">Assignment 2</span></h3>
+          <div class="sa-list" id="sa-list-2"></div>
+          <p class="empty-state" id="sa-empty-2" hidden>No Assignment 2 has been posted for your programme yet.</p>
+        </section>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section id="tab-results" class="tab-content">
+      <h2>Results</h2>
+      <p class="section-hint" id="sr-weights"></p>
+      <p id="sr-message" class="message" role="status" aria-live="polite"></p>
+      <div id="sr-list" class="sr-list"></div>
+      <p class="empty-state" id="sr-empty" hidden>No results have been released yet. They will appear here when your lecturers publish them.</p>
+    </section>
+
+    <!-- Semester registration -->
+    <section id="tab-registration" class="tab-content">
+      <h2>Semester Registration</h2>
+      <p class="section-hint">Register at the start of every semester. You need to have paid the minimum fees, then your
+        registration is approved by the Accounts office, your Class Advisor, Head of Department, Dean of Students and
+        Dean (Academic), in that order.</p>
+      <p id="sr2-message" class="message" role="status" aria-live="polite"></p>
+      <div class="stat-row" id="sr2-cards"></div>
+      <div id="sr2-register"></div>
+      <div id="sr2-current"></div>
+      <h3>Registration history</h3>
+      <div class="table-wrap">
+        <table class="data-table" id="sr2-history">
+          <thead><tr><th>Semester</th><th>Registration window</th><th>Registered on</th><th>Status</th><th>Approved on</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="empty-state" id="sr2-empty" hidden>You have not registered for a semester yet.</p>
+    </section>
+
+    <!-- Fees -->
+    <section id="tab-fees" class="tab-content">
+      <h2>Fees</h2>
+      <p id="sf-message" class="message" role="status" aria-live="polite"></p>
+      <div class="stat-row" id="sf-cards"></div>
+
+      <details class="asg-post" id="sf-upload-box">
+        <summary>Upload proof of payment</summary>
+        <form id="sf-proof-form" class="apply-form-v2 asg-form" novalidate>
+          <p class="section-hint">Paid at the bank or by mobile money? Upload a clear photo or scan of your receipt or deposit slip. The Accounts office will check it and update your balance.</p>
+          <div class="field-grid">
+            <div class="field"><label for="sp-amount">Amount paid (K) <span class="req">*</span></label><input type="number" id="sp-amount" name="amount" min="1" step="0.01" inputmode="decimal"></div>
+            <div class="field"><label for="sp-ref">Receipt / bank reference <span class="req">*</span></label><input type="text" id="sp-ref" name="reference" maxlength="60" placeholder="As printed on the slip"></div>
+            <div class="field"><label for="sp-date">Date paid <span class="req">*</span></label><input type="date" id="sp-date" name="date"></div>
+            <div class="field"><label for="sp-method">How you paid</label>
+              <div class="select-wrap"><select id="sp-method" name="method">
+                <option>Bank deposit</option><option>Bank transfer</option><option>Mobile money</option><option>Cash</option><option>Other</option>
+              </select></div>
+            </div>
+            <div class="field field-full">
+              <label for="sp-file" class="sa-file" id="sp-file-label">
+                <input type="file" id="sp-file" name="file" accept="application/pdf,image/jpeg,image/png">
+                <span class="sa-file-label">Choose a photo or PDF of your receipt (max 5MB)</span>
+              </label>
+            </div>
+            <div class="field field-full"><label for="sp-note">Note for the Accounts office</label><input type="text" id="sp-note" name="note" maxlength="500" placeholder="Optional, e.g. paid by my parent"></div>
+          </div>
+          <button type="submit" class="btn-cta asg-submit"><span class="btn-cta-label">Upload proof</span><span class="spinner" aria-hidden="true"></span></button>
+          <p id="sp-message" class="message" role="status" aria-live="polite"></p>
+        </form>
+      </details>
+
+      <div id="sf-proofs-wrap" hidden>
+        <h3>My uploaded receipts</h3>
+        <div class="proof-list" id="sf-proofs"></div>
+      </div>
+
+      <h3>Statement</h3>
+      <div class="table-wrap">
+        <table class="data-table statement" id="sf-table">
+          <thead><tr><th>Date</th><th>Details</th><th class="num">Charge</th><th class="num">Payment</th><th class="num">Balance</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="pay-box sf-pay" id="sf-pay"></div>
+    </section>
+
+    <!-- Exams: eligibility checklist (No Due Certificate) + hall ticket -->
+    <section id="tab-exams" class="tab-content">
+      <h2>Exams &amp; Hall Ticket</h2>
+      <p class="section-hint">Before you can sit an exam you must be cleared by the Accounts office, your Class Advisor
+        and the Hostel (if you live there), then approved by your Head of Department, the Dean of Students and the
+        Dean (Academic). When everything is done you can print your hall ticket here.</p>
+      <p id="se-message" class="message" role="status" aria-live="polite"></p>
+      <div class="notice notice-warn" id="se-photo" hidden>
+        Your hall ticket carries your photo. <a href="#tab-profile">Upload a passport-style photo</a> in My Profile.
+      </div>
+      <div id="se-list"></div>
+      <p class="empty-state" id="se-empty" hidden>There are no exam sessions for your programme right now.</p>
+    </section>
+
+    <!-- My Profile -->
+    <section id="tab-profile" class="tab-content">
+      <h2>My Profile</h2>
+
+      <div class="profile-photo-row">
+        <img id="profile-photo-preview" class="profile-photo-preview profile-photo-lg" src="/images/default-avatar.svg" alt="Your profile photo">
+        <div>
+          <label for="student-photo-input" class="btn-secondary photo-btn">Upload photo</label>
+          <input type="file" id="student-photo-input" accept="image/png,image/jpeg" class="visually-hidden">
+          <p class="section-hint">PNG or JPEG, up to 5MB. A clear passport-style photo works best.</p>
+        </div>
+      </div>
+      <p id="photo-message" class="message" role="status" aria-live="polite"></p>
+
+      <form id="student-profile-form" class="profile-form" novalidate>
+        <div class="form-grid">
+          <div>
+            <label for="pf-name">Full name</label>
+            <input type="text" id="pf-name" readonly>
+          </div>
+          <div>
+            <label for="pf-id">Student ID</label>
+            <input type="text" id="pf-id" readonly>
+          </div>
+          <div>
+            <label for="pf-email">Email</label>
+            <input type="email" id="pf-email" readonly>
+          </div>
+          <div>
+            <label for="pf-dob">Date of birth</label>
+            <input type="date" id="pf-dob" name="date_of_birth">
+          </div>
+          <div>
+            <label for="pf-phone">Phone</label>
+            <input type="tel" id="pf-phone" name="phone" placeholder="e.g. +260 97 1234567">
+          </div>
+          <div>
+            <label for="pf-address">Address</label>
+            <input type="text" id="pf-address" name="address" maxlength="255">
+          </div>
+          <div>
+            <label for="pf-kin-name">Next of kin name</label>
+            <input type="text" id="pf-kin-name" name="next_of_kin_name" maxlength="100">
+          </div>
+          <div>
+            <label for="pf-kin-phone">Next of kin phone</label>
+            <input type="tel" id="pf-kin-phone" name="next_of_kin_phone">
+          </div>
+        </div>
+        <p class="section-hint">Your name, email and student ID are managed by the registry. Contact the administration to change them.</p>
+        <button type="submit" class="btn-primary">Save Changes</button>
+        <p id="profile-message" class="message" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <!-- Account -->
+    <section id="tab-account" class="tab-content">
+      <h2>Change Password</h2>
+      <form id="change-password-form" class="login-form">
+        <label for="current-password">Current Password</label>
+        <input type="password" id="current-password" name="current-password" required>
+
+        <label for="new-password">New Password</label>
+        <input type="password" id="new-password" name="new-password" required minlength="8">
+
+        <label for="confirm-new-password">Confirm New Password</label>
+        <input type="password" id="confirm-new-password" name="confirm-new-password" required>
+
+        <button type="submit" class="btn-primary">Change Password</button>
+        <p id="password-message" class="message" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+  </main>
+
+  <script src="/js/guard.js" data-allow="student"></script>
+  <script src="/js/tabs.js"></script>
+  <script src="/js/change-password.js"></script>
+  <script src="/js/student.js"></script>
+  <script src="/js/student-assignments.js"></script>
+  <script src="/js/results-calc.js"></script>
+  <script src="/js/student-results.js"></script>
+  <script src="/js/student-fees.js"></script>
+  <script src="/js/student-library.js"></script>
+  <script src="/js/student-exams.js"></script>
+  <script src="/js/student-registration.js"></script>
+  <script src="/js/notifications.js"></script>
+</body>
+</html>

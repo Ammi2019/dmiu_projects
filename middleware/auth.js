@@ -1,20 +1,33 @@
-function requireLogin(req, res, next) {
-    if (!req.session.userId) {
-        return res.status(401).send('You must be logged in to access this.');
+const jwt = require('jsonwebtoken');
+
+// Verify JWT token
+function verifyToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; // Expect "Bearer <token>"
+
+    if (!token) {
+        return res.status(401).send('Access token required.');
     }
-    next();
+
+    try {
+        const decoded = jwt.verify(token, process.env.SECRET); 
+        req.user = decoded; // attach decoded payload (id, role) to request
+        next();
+    } catch (err) {
+        return res.status(403).send('Invalid or expired token.');
+    }
 }
 
-function requireRole(...allowedRoles) {
+// Role-based middleware factory
+function checkRole(...allowedRoles) {
     return (req, res, next) => {
-        if (!req.session.userId) {
-            return res.status(401).send('You must be logged in to access this.');
+        if (req.user && allowedRoles.includes(req.user.role)) {
+            next();
+        } else {
+            res.status(403).send('You do not have permission to access this.');
         }
-        if (!allowedRoles.includes(req.session.role)) {
-            return res.status(403).send('You do not have permission to access this.');
-        }
-        next();
     };
 }
 
-module.exports = { requireLogin, requireRole };
+module.exports = { verifyToken, checkRole };
+

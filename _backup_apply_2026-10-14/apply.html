@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apply — DMISEU Chipata Campus</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="apply-page">
+  <header class="site-header">
+    <h1>DMISEU Chipata Campus</h1>
+  </header>
+
+  <div class="apply-hero">
+    <p class="apply-eyebrow">Admissions 2026</p>
+    <h2>Apply for Admission</h2>
+    <p>Choose your programme and complete the three steps below. It takes about 10 minutes. Fields marked <span class="req">*</span> are required.</p>
+  </div>
+
+  <main class="apply-main">
+    <div class="apply-card">
+      <!-- Progress steps -->
+      <ol class="apply-steps" aria-label="Application steps">
+        <li class="apply-step" data-step="1"><span class="apply-step-num">1</span><span class="apply-step-label">Personal details</span></li>
+        <li class="apply-step" data-step="2"><span class="apply-step-num">2</span><span class="apply-step-label">Qualifications</span></li>
+        <li class="apply-step" data-step="3"><span class="apply-step-num">3</span><span class="apply-step-label">Documents</span></li>
+      </ol>
+
+      <form id="apply-form" class="apply-form-v2" novalidate>
+        <!-- Step 1 -->
+        <fieldset class="apply-section" data-section="1">
+          <legend><span class="step-badge">1</span> Personal details</legend>
+          <div class="field-grid">
+            <div class="field field-full">
+              <label for="programme">Programme applying for <span class="req">*</span></label>
+              <div class="select-wrap">
+                <select id="programme" name="programme" required>
+                  <option value="">Loading programmes…</option>
+                </select>
+              </div>
+              <p class="field-error" id="programme-error"></p>
+              <div class="prog-summary" id="prog-summary" hidden>
+                <div class="prog-summary-main">
+                  <span class="level-badge" id="ps-level"></span>
+                  <span class="prog-summary-school" id="ps-school"></span>
+                </div>
+                <dl class="prog-summary-facts">
+                  <div><dt>Duration</dt><dd id="ps-years"></dd></div>
+                  <div><dt>Tuition</dt><dd id="ps-fee"></dd></div>
+                  <div><dt>Due at admission</dt><dd id="ps-admission"></dd></div>
+                </dl>
+                <a href="/#programmes" class="prog-summary-link">See all programmes and fees</a>
+              </div>
+            </div>
+            <div class="field field-full">
+              <label for="name">Full name <span class="req">*</span></label>
+              <input type="text" id="name" name="name" autocomplete="name" placeholder="As it appears on your certificate" required>
+              <p class="field-error" id="name-error"></p>
+            </div>
+            <div class="field">
+              <label for="email">Email address <span class="req">*</span></label>
+              <input type="email" id="email" name="email" autocomplete="email" placeholder="you@example.com" required>
+              <p class="field-error" id="email-error"></p>
+            </div>
+            <div class="field">
+              <label for="phone">Phone number</label>
+              <input type="tel" id="phone" name="phone" autocomplete="tel" placeholder="+260 97 1234567">
+              <p class="field-error" id="phone-error"></p>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Step 2 -->
+        <fieldset class="apply-section" data-section="2">
+          <legend><span class="step-badge">2</span> Qualifications</legend>
+          <p class="section-hint">Add each subject from your GCE / secondary school results.</p>
+
+          <div class="qual-head" aria-hidden="true">
+            <span>Subject</span><span>Result</span><span></span>
+          </div>
+          <div id="qualifications-list"></div>
+          <p class="field-error" id="qualifications-error"></p>
+
+          <button type="button" id="add-qualification" class="btn-ghost">
+            <span aria-hidden="true">＋</span> Add another subject
+          </button>
+        </fieldset>
+
+        <!-- Step 3 -->
+        <fieldset class="apply-section" data-section="3">
+          <legend><span class="step-badge">3</span> Supporting documents</legend>
+          <p class="section-hint">Upload scans of your certificates, results slip or NRC.</p>
+
+          <label for="documents" class="dropzone" id="dropzone">
+            <svg class="dropzone-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0l-4 4m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="dropzone-title">Drag files here or <u>browse</u></span>
+            <span class="dropzone-sub">PNG, JPEG or PDF · up to 5 files · 5MB each</span>
+          </label>
+          <input type="file" id="documents" name="documents" accept=".png,.jpg,.jpeg,.pdf" multiple class="visually-hidden">
+          <ul class="file-list" id="file-list"></ul>
+          <p class="field-error" id="documents-error"></p>
+        </fieldset>
+
+        <div class="apply-actions">
+          <p class="apply-note">By submitting, you confirm the information provided is accurate.</p>
+          <button type="submit" class="btn-cta" id="submit-btn">
+            <span class="btn-cta-label">Submit application</span>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
+        </div>
+        <p id="message" class="message" role="alert"></p>
+      </form>
+
+      <!-- Shown after a successful submission -->
+      <div class="apply-success" id="apply-success" hidden>
+        <div class="success-check" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>Application submitted</h3>
+        <p>Thank you, <strong id="success-name"></strong>. Your application for <strong id="success-programme"></strong> has been received. Your reference number is</p>
+        <p class="success-ref" id="success-ref"></p>
+        <p class="section-hint">Keep this number. The admissions office will contact you at <strong id="success-email"></strong>.</p>
+        <div class="success-actions">
+          <a href="/" class="btn-ghost">Back to home</a>
+          <button type="button" class="btn-ghost" id="new-application">Submit another application</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; 2026 DMISEU Chipata Campus</p>
+  </footer>
+
+  <script src="/js/apply.js"></script>
+</body>
+</html>

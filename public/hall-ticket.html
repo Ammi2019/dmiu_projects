@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hall Ticket — DMI-St. Eugene University</title>
+  <link rel="stylesheet" href="/css/hall-ticket.css">
+</head>
+<body>
+  <div class="ht-toolbar no-print">
+    <a href="/student.html#tab-exams" class="ht-btn ht-btn-ghost">← Back to dashboard</a>
+    <button type="button" class="ht-btn" id="ht-print" disabled>Print / Save as PDF</button>
+  </div>
+  <p class="ht-error no-print" id="ht-error" hidden></p>
+
+  <!-- Page 1: the ticket -->
+  <main class="ht-page" id="ht-ticket" hidden>
+    <table class="ht-table ht-head">
+      <tr>
+        <td class="ht-crest-cell">
+          <div class="ht-crest" aria-hidden="true"><span>DMI</span><small>ST. EUGENE</small></div>
+        </td>
+        <td class="ht-title">
+          <h1>DMI - ST. EUGENE UNIVERSITY</h1>
+          <p class="ht-addr">9 miles, Great North Road, Lusaka</p>
+          <p class="ht-session" id="ht-session"></p>
+          <p class="ht-kind">HALL TICKET</p>
+        </td>
+      </tr>
+    </table>
+
+    <table class="ht-table ht-details">
+      <colgroup><col style="width:17%"><col style="width:31%"><col style="width:20%"><col style="width:14%"><col style="width:18%"></colgroup>
+      <tr>
+        <th>Register No:</th><td id="ht-reg" class="ht-strong"></td>
+        <th>Current Semester :</th><td id="ht-sem" class="ht-center"></td>
+        <td rowspan="3" class="ht-photo-cell"><img id="ht-photo" alt="Candidate photo" hidden><span id="ht-photo-ph">PHOTO</span></td>
+      </tr>
+      <tr>
+        <th>Name of the candidate :</th><td id="ht-name" class="ht-strong"></td>
+        <th>Centre Name:</th><td id="ht-centre" class="ht-center"></td>
+      </tr>
+      <tr>
+        <th>Programme:</th><td id="ht-programme" class="ht-caps"></td>
+        <th>Centre Code:</th><td id="ht-code" class="ht-center"></td>
+      </tr>
+    </table>
+
+    <table class="ht-table ht-papers">
+      <colgroup><col style="width:15%"><col style="width:16%"><col style="width:47%"><col style="width:22%"></colgroup>
+      <tr><td colspan="3" class="ht-center ht-band">Regular</td><td class="ht-center ht-band">Invigilator</td></tr>
+      <tr><th>Date</th><th>Module Code</th><th>Module Name</th><th>Signature</th></tr>
+      <tbody id="ht-rows"></tbody>
+    </table>
+
+    <table class="ht-table ht-foot">
+      <tr>
+        <td class="ht-sign">
+          <div class="ht-sign-line"></div>
+          <strong>Signature of the Candidate</strong>
+        </td>
+        <td class="ht-controller">
+          <div class="ht-stamp">
+            <span>CLEARED FOR EXAMINATION</span>
+            <small id="ht-issued"></small>
+          </div>
+          <strong>CONTROLLER OF EXAMINATIONS</strong>
+          <span>DMI - ST. EUGENE UNIVERSITY</span>
+          <span>LUSAKA - ZAMBIA</span>
+        </td>
+      </tr>
+    </table>
+    <p class="ht-meta">Hall ticket no. <strong id="ht-no"></strong> · Issued through the DMISEU Chipata Campus student portal after clearance by
+      Accounts, Class Advisor, Hostel, Head of Department, Dean of Students and Dean (Academic).</p>
+  </main>
+
+  <!-- Page 2: instructions -->
+  <section class="ht-page ht-instructions" id="ht-instr" hidden>
+    <h2>Instructions to the Candidate:</h2>
+    <ol>
+      <li>Write the examination using Blue or Black ballpoint / fountain pen.</li>
+      <li>No Candidate will be allowed inside the examination hall without the hall ticket.</li>
+      <li>No candidate will be allowed to enter the examination hall after 30 minutes of the commencement of the examination.</li>
+      <li>No writing shall be made on the question paper.</li>
+      <li>Possession of cell phone / pager / programmable calculator or any other electronic device inside the examination hall strictly prohibited.</li>
+      <li>Candidate is allowed to use pencil, sketch pen, ruler, eraser, and other permissible writing materials in the examination. They are not allowed to either lend or borrow them from other candidates.</li>
+      <li>Candidate is liable for expulsion from the room if he/she is behaving indifferently leading to disturbing the conduct of examination.</li>
+      <li>It will be the sole responsibility of the candidate to handover the written examination paper to the invigilator.</li>
+      <li>Candidate will be allowed to leave the examination hall only after completion of 45 minutes from the commencement of the examination.</li>
+      <li>Malpractice of any kind will be seriously dealt with.</li>
+    </ol>
+  </section>
+
+  <script src="/js/hall-ticket.js"></script>
+</body>
+</html>

@@ -1,53 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Create account — DMISEU Chipata Campus</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Register — DMISEU Chipata Campus</title>
+  <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
-  <div class="auth-shell">
-    <div class="auth-brand">
-      <h1>DMISEU<br />Chipata Campus</h1>
-      <hr class="rule" />
-      <p>Student accounts get you access to enrollment and course records.</p>
-    </div>
-    <div class="auth-form-panel">
-      <form class="auth-form" id="register-form">
-        <h2>Create your account</h2>
-        <p class="subtext">Staff accounts are set up by the department, not here.</p>
+<body class="register-page">
+  <header class="site-header">
+    <h1>Create an Account</h1>
+  </header>
 
-        <div class="message" id="message"></div>
+  <main class="register-main">
+    <form id="register-form" class="register-card apply-form-v2" novalidate>
+      <fieldset class="portal-switch register-type">
+        <legend>Registering as</legend>
+        <label><input type="radio" name="account_type" value="student" checked> Student</label>
+        <label><input type="radio" name="account_type" value="lecturer"> Lecturer</label>
+        <label><input type="radio" name="account_type" value="staff"> Other staff</label>
+      </fieldset>
 
+      <div class="field">
+        <label for="name">Full name <span class="req">*</span></label>
+        <input type="text" id="name" name="name" autocomplete="name" required>
+      </div>
+
+      <div class="field">
+        <label for="email">Email address <span class="req">*</span></label>
+        <input type="email" id="email" name="email" autocomplete="email" required>
+      </div>
+
+      <!-- Students only -->
+      <div id="student-fields" class="student-fields">
         <div class="field">
-          <label for="name">Full name</label>
-          <input type="text" id="name" name="name" autocomplete="name" required />
+          <label for="school">School <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select id="school" name="school" required>
+              <option value="">Loading schools…</option>
+            </select>
+          </div>
         </div>
 
         <div class="field">
-          <label for="email">Email</label>
-          <input type="email" id="email" name="email" autocomplete="email" required />
+          <label for="programme">Programme <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select id="programme" name="programme" required disabled>
+              <option value="">Choose a school first</option>
+            </select>
+          </div>
+          <p class="field-hint" id="programme-hint"></p>
         </div>
+      </div>
 
+      <!-- Lecturers only -->
+      <div id="lecturer-fields" class="student-fields" hidden>
         <div class="field">
-          <label for="password">Password</label>
-          <input type="password" id="password" name="password" autocomplete="new-password" required minlength="6" />
+          <label for="lecturer-school">School you teach in <span class="req">*</span></label>
+          <div class="select-wrap">
+            <select id="lecturer-school" name="lecturer_school">
+              <option value="">Loading schools…</option>
+            </select>
+          </div>
+          <p class="field-hint">You will post assignments to students in this school.</p>
         </div>
+      </div>
 
-        <div class="field">
-          <label for="confirm-password">Confirm password</label>
-          <input type="password" id="confirm-password" name="confirm-password" autocomplete="new-password" required minlength="6" />
-        </div>
+      <div class="field">
+        <label for="password">Password <span class="req">*</span></label>
+        <input type="password" id="password" name="password" autocomplete="new-password" minlength="8" required>
+        <p class="field-hint">At least 8 characters.</p>
+      </div>
 
-        <button type="submit" class="btn-primary">Create account</button>
+      <div class="field">
+        <label for="confirm-password">Confirm password <span class="req">*</span></label>
+        <input type="password" id="confirm-password" name="confirm-password" autocomplete="new-password" required>
+      </div>
 
-        <p class="switch-line">Already registered? <a href="/login.html">Sign in</a></p>
-      </form>
-    </div>
-  </div>
+      <button type="submit" class="btn-cta register-submit">
+        <span class="btn-cta-label">Register</span>
+        <span class="spinner" aria-hidden="true"></span>
+      </button>
+      <p id="message" class="message" role="alert"></p>
+      <p class="register-alt">Already have an account? <a href="/login.html">Log in here</a></p>
+    </form>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; 2026 DMISEU Chipata Campus</p>
+  </footer>
+
   <script src="/js/auth.js"></script>
 </body>
 </html>

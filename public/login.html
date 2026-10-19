@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login — DMISEU Chipata Campus</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <h1 id="login-title">Login</h1>
+  </header>
+
+  <main class="login-main">
+    <form id="login-form" class="login-form">
+      <fieldset class="portal-switch">
+        <legend>Sign in as</legend>
+        <label><input type="radio" name="portal" value="student" checked> Student</label>
+        <label><input type="radio" name="portal" value="lecturer"> Lecturer</label>
+        <label><input type="radio" name="portal" value="staff"> Administration</label>
+      </fieldset>
+
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" required>
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required>
+
+      <button type="submit" class="btn-primary">Login</button>
+      <p id="message" class="message"></p>
+      <p>Don't have an account? <a href="/register.html">Register here</a></p>
+    </form>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; 2026 DMISEU Chipata Campus</p>
+  </footer>
+
+  <script src="/js/auth.js"></script>
+</body>
+</html>

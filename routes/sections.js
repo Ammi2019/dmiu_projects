@@ -1,12 +1,12 @@
 // routes/sections.js
 const express = require('express');
 const pool = require('../db');
-const { requireLogin, requireRole } = require('../middleware/auth');
+const { verifyToken, checkRole } = require('../middleware/auth'); // updated import
 
 const router = express.Router();
 
 // GET all sections — joined with course title and lecturer name
-router.get('/', requireLogin, async (req, res) => {
+router.get('/', verifyToken, async (req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT sections.section_id, sections.course_id, sections.lecturer_id,
@@ -26,7 +26,7 @@ router.get('/', requireLogin, async (req, res) => {
 });
 
 // GET single section
-router.get('/:id', requireLogin, async (req, res) => {
+router.get('/:id', verifyToken, async (req, res) => {
   try {
     const [rows] = await pool.query(
       `SELECT sections.section_id, sections.course_id, sections.lecturer_id,
@@ -51,7 +51,7 @@ router.get('/:id', requireLogin, async (req, res) => {
 });
 
 // CREATE section — restricted to head_of_department
-router.post('/', requireRole('head_of_department'), async (req, res) => {
+router.post('/', verifyToken, checkRole('head_of_department'), async (req, res) => {
   const { course_id, lecturer_id, semester, year, room, capacity } = req.body;
 
   if (!course_id || !lecturer_id || !semester || !year) {
@@ -70,8 +70,8 @@ router.post('/', requireRole('head_of_department'), async (req, res) => {
   }
 });
 
-// UPDATE section
-router.put('/:id', requireRole('head_of_department'), async (req, res) => {
+// UPDATE section — restricted to head_of_department
+router.put('/:id', verifyToken, checkRole('head_of_department'), async (req, res) => {
   const { course_id, lecturer_id, semester, year, room, capacity } = req.body;
 
   try {
@@ -89,8 +89,8 @@ router.put('/:id', requireRole('head_of_department'), async (req, res) => {
   }
 });
 
-// DELETE section
-router.delete('/:id', requireRole('head_of_department'), async (req, res) => {
+// DELETE section — restricted to head_of_department
+router.delete('/:id', verifyToken, checkRole('head_of_department'), async (req, res) => {
   try {
     const [result] = await pool.query(
       'DELETE FROM sections WHERE section_id = ?',

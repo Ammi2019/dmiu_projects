@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lecturer Dashboard — DMISEU Chipata Campus</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <h1>Lecturer Dashboard</h1>
+  </header>
+
+  <!-- Identity banner: shown on every tab -->
+  <section class="id-banner" aria-label="Lecturer identity">
+    <img id="banner-photo" class="id-photo" src="/images/default-avatar.svg" alt="Profile photo">
+    <div class="id-text">
+      <span class="id-name" id="banner-name">–</span>
+      <span class="id-number">Lecturer ID: <strong id="banner-id">–</strong></span>
+      <span class="id-dept" id="banner-dept"></span>
+    </div>
+  </section>
+
+  <nav class="tabs" role="tablist">
+    <div class="tab active" data-tab="tab-overview" role="tab">Overview</div>
+    <div class="tab" data-tab="tab-notes" role="tab">Notes</div>
+    <div class="tab" data-tab="tab-assignments" role="tab">Assignments</div>
+    <div class="tab" data-tab="tab-results" role="tab">Results</div>
+    <div class="tab" data-tab="tab-registration" role="tab">Registration</div>
+    <div class="tab" data-tab="tab-exams" role="tab">Exam Clearance</div>
+    <div class="tab" data-tab="tab-profile" role="tab">My Profile</div>
+    <div class="tab" data-tab="tab-account" role="tab">Account</div>
+  </nav>
+
+  <main>
+    <!-- Overview -->
+    <section id="tab-overview" class="tab-content active">
+      <h2>Overview</h2>
+      <div class="stat-row">
+        <div class="stat-card">
+          <span class="stat-label">Classes teaching</span>
+          <span class="stat-value" id="stat-classes">–</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Students enrolled</span>
+          <span class="stat-value" id="stat-students">–</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Grades pending</span>
+          <span class="stat-value" id="stat-pending">–</span>
+        </div>
+      </div>
+
+      <h3>My details</h3>
+      <dl class="details-list">
+        <dt>Name</dt><dd id="me-name">–</dd>
+        <dt>Email</dt><dd id="me-email">–</dd>
+        <dt>Lecturer ID</dt><dd id="me-id">–</dd>
+        <dt>Position</dt><dd id="me-role">–</dd>
+        <dt>Department</dt><dd id="me-department">–</dd>
+        <dt>Joined</dt><dd id="me-hired">–</dd>
+        <dt>Qualification</dt><dd id="me-qualification">–</dd>
+        <dt>Specialization</dt><dd id="me-specialization">–</dd>
+        <dt>Office</dt><dd id="me-office">–</dd>
+        <dt>Office hours</dt><dd id="me-office-hours">–</dd>
+        <dt>Phone</dt><dd id="me-phone">–</dd>
+      </dl>
+      <p id="overview-message" class="message" role="status" aria-live="polite"></p>
+
+      <h3>My classes</h3>
+      <div class="table-wrap">
+        <table class="data-table" id="classes-table">
+          <thead>
+            <tr>
+              <th>Code</th><th>Course</th><th>Credits</th><th>Semester</th>
+              <th>Room</th><th>Students</th><th>Ungraded</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="empty-state" id="classes-empty" hidden>
+        You have not been assigned any classes yet. Your head of department assigns course sections.
+      </p>
+    </section>
+
+    <!-- Notes: Units 1–5 per course -->
+    <section id="tab-notes" class="tab-content">
+      <h2>Course notes</h2>
+
+      <div class="notice notice-warn" id="nt-no-school" hidden>
+        <strong>Choose your school first.</strong> Go to <a href="#" data-goto="tab-profile">My Profile</a> and select the school you teach in.
+      </div>
+
+      <div id="nt-workspace" hidden>
+        <p class="section-hint">Post up to 5 units of notes for each course. Students in the programme see them in their Library and get a notification.</p>
+
+        <div class="nt-courses">
+          <div class="nt-course-list" id="nt-course-list" role="tablist" aria-label="Your courses"></div>
+          <details class="nt-add" id="nt-add">
+            <summary>＋ Add a course</summary>
+            <form id="nt-add-form" class="apply-form-v2" novalidate>
+              <div class="field-grid">
+                <div class="field"><label for="nt-course">Course / module</label><input type="text" id="nt-course" maxlength="150" placeholder="e.g. Database Systems"></div>
+                <div class="field"><label for="nt-programme">Students in</label><div class="select-wrap"><select id="nt-programme"></select></div></div>
+              </div>
+              <button type="submit" class="btn-primary btn-small">Add course</button>
+            </form>
+          </details>
+        </div>
+
+        <p id="nt-message" class="message" role="status" aria-live="polite"></p>
+
+        <div id="nt-units-wrap" hidden>
+          <h3 id="nt-units-title"></h3>
+          <p class="section-hint" id="nt-units-meta"></p>
+          <div class="nt-units" id="nt-units"></div>
+        </div>
+        <p class="empty-state" id="nt-empty">Add a course to start posting notes.</p>
+      </div>
+    </section>
+
+    <!-- Assignments -->
+    <section id="tab-assignments" class="tab-content">
+      <h2>Assignments</h2>
+
+      <div class="notice notice-warn" id="asg-no-school" hidden>
+        <strong>Choose your school first.</strong> Go to <a href="#" data-goto="tab-profile">My Profile</a> and select the school you teach in. You can then post assignments to its students.
+      </div>
+
+      <div id="asg-workspace" hidden>
+        <p class="section-hint">You are posting to students in the <strong id="asg-school-name"></strong>.</p>
+
+        <details class="asg-post" id="asg-post" open>
+          <summary>Post a new assignment</summary>
+          <form id="asg-form" class="apply-form-v2 asg-form" novalidate>
+            <fieldset class="portal-switch asg-number">
+              <legend>Assignment</legend>
+              <label><input type="radio" name="assignment_no" value="1" checked> Assignment 1</label>
+              <label><input type="radio" name="assignment_no" value="2"> Assignment 2</label>
+            </fieldset>
+
+            <div class="field-grid">
+              <div class="field">
+                <label for="asg-programme">For students in <span class="req">*</span></label>
+                <div class="select-wrap">
+                  <select id="asg-programme" name="programme"></select>
+                </div>
+              </div>
+              <div class="field">
+                <label for="asg-course">Course / module <span class="req">*</span></label>
+                <input type="text" id="asg-course" name="course_name" maxlength="150" placeholder="e.g. Database Systems">
+              </div>
+              <div class="field field-full">
+                <label for="asg-title">Title <span class="req">*</span></label>
+                <input type="text" id="asg-title" name="title" maxlength="200" placeholder="e.g. Designing a relational schema">
+              </div>
+              <div class="field field-full">
+                <label for="asg-instructions">Instructions</label>
+                <textarea id="asg-instructions" name="instructions" rows="5" maxlength="5000" placeholder="What students should do, how it will be marked, word count…"></textarea>
+              </div>
+              <div class="field">
+                <label for="asg-due">Due date and time <span class="req">*</span></label>
+                <input type="datetime-local" id="asg-due" name="due_at">
+              </div>
+              <div class="field">
+                <label for="asg-file">Attachment (optional)</label>
+                <input type="file" id="asg-file" name="attachment" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip,.png,.jpg,.jpeg">
+                <p class="field-hint">PDF, Word, PowerPoint, Excel, TXT, ZIP or image · up to 10MB</p>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-cta asg-submit">
+              <span class="btn-cta-label">Post assignment</span>
+              <span class="spinner" aria-hidden="true"></span>
+            </button>
+            <p id="asg-message" class="message" role="status" aria-live="polite"></p>
+          </form>
+        </details>
+
+        <h3>Posted assignments</h3>
+        <p id="asg-list-message" class="message" role="status" aria-live="polite"></p>
+        <div id="asg-list" class="asg-list"></div>
+        <p class="empty-state" id="asg-empty" hidden>You have not posted any assignments yet.</p>
+
+        <!-- Submissions for one assignment -->
+        <div class="asg-subs" id="asg-subs" hidden>
+          <div class="asg-subs-head">
+            <div>
+              <h3 id="subs-title"></h3>
+              <p class="section-hint" id="subs-meta"></p>
+            </div>
+            <button type="button" class="btn-ghost" id="subs-close">Close</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table" id="subs-table">
+              <thead>
+                <tr><th>Student</th><th>Programme</th><th>Status</th><th>Submitted</th><th>File</th><th>Comment</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="empty-state" id="subs-empty" hidden>No students are registered for this programme yet.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section id="tab-results" class="tab-content">
+      <h2>Results</h2>
+
+      <div class="notice notice-warn" id="res-no-school" hidden>
+        <strong>Choose your school first.</strong> Go to <a href="#" data-goto="tab-profile">My Profile</a> and select the school you teach in.
+      </div>
+
+      <div id="res-workspace" hidden>
+        <p class="section-hint" id="res-weights"></p>
+
+        <details class="asg-post" id="res-new">
+          <summary>Create a result sheet</summary>
+          <form id="res-form" class="apply-form-v2 asg-form" novalidate>
+            <div class="field-grid">
+              <div class="field">
+                <label for="res-course">Course / module <span class="req">*</span></label>
+                <input type="text" id="res-course" maxlength="150" placeholder="e.g. Database Systems">
+              </div>
+              <div class="field">
+                <label for="res-period">Semester <span class="req">*</span></label>
+                <input type="text" id="res-period" maxlength="40" placeholder="e.g. 2026 Semester 1">
+              </div>
+              <div class="field field-full">
+                <label for="res-programme">Students in <span class="req">*</span></label>
+                <div class="select-wrap"><select id="res-programme"></select></div>
+              </div>
+            </div>
+            <button type="submit" class="btn-cta asg-submit"><span class="btn-cta-label">Create sheet</span><span class="spinner" aria-hidden="true"></span></button>
+            <p id="res-form-message" class="message" role="status" aria-live="polite"></p>
+          </form>
+        </details>
+
+        <h3>My result sheets</h3>
+        <p id="res-list-message" class="message" role="status" aria-live="polite"></p>
+        <div id="res-list" class="asg-list"></div>
+        <p class="empty-state" id="res-empty" hidden>No result sheets yet. Create one above for each course you teach.</p>
+
+        <!-- One sheet: mark entry grid -->
+        <div class="res-sheet" id="res-sheet" hidden>
+          <div class="asg-subs-head">
+            <div>
+              <h3 id="sheet-title"></h3>
+              <p class="section-hint" id="sheet-meta"></p>
+            </div>
+            <div class="res-sheet-actions">
+              <button type="button" class="btn-ghost btn-small" id="sheet-csv">Download CSV</button>
+              <button type="button" class="btn-ghost btn-small" id="sheet-close">Close</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="data-table res-grid" id="sheet-table">
+              <thead></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="empty-state" id="sheet-empty" hidden>No students are registered for this programme yet.</p>
+
+          <div class="res-save-bar">
+            <span id="sheet-dirty" class="res-dirty"></span>
+            <button type="button" class="btn-cta btn-cta-sm" id="sheet-save" disabled>
+              <span class="btn-cta-label">Save marks</span><span class="spinner" aria-hidden="true"></span>
+            </button>
+          </div>
+          <p id="sheet-message" class="message" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Semester registration: Class Advisor approval -->
+    <section id="tab-registration" class="tab-content">
+      <h2>Semester Registration</h2>
+      <p class="section-hint">As Class Advisor, approve the semester registrations of students in your school once the
+        Accounts office has cleared them. They then go to the Head of Department.</p>
+      <div id="reg-board" data-clearance-board data-api="/api/registration" data-prefix="rgb" data-global="RegBoard"></div>
+    </section>
+
+    <!-- Exam clearance: Class Advisor step of the No Due Certificate -->
+    <section id="tab-exams" class="tab-content">
+      <h2>Exam Clearance</h2>
+      <p class="section-hint">As Class Advisor, clear the students in your school who are eligible to sit the exam (and hostel residents' Hostel step),
+        or put them on hold with a reason they will see on their dashboard.</p>
+      <div id="exam-board" data-clearance-board data-api="/api/exams" data-prefix="exb" data-global="ExamBoard"></div>
+    </section>
+
+    <!-- My Profile -->
+    <section id="tab-profile" class="tab-content">
+      <h2>My Profile</h2>
+
+      <div class="profile-photo-row">
+        <img id="profile-photo-preview" class="profile-photo-preview profile-photo-lg" src="/images/default-avatar.svg" alt="Your profile photo">
+        <div>
+          <label for="photo-input" class="btn-secondary photo-btn">Upload photo</label>
+          <input type="file" id="photo-input" accept="image/png,image/jpeg" class="visually-hidden">
+          <p class="section-hint">PNG or JPEG, up to 5MB. A clear passport-style photo works best.</p>
+        </div>
+      </div>
+      <p id="photo-message" class="message" role="status" aria-live="polite"></p>
+
+      <form id="profile-form" class="profile-form" novalidate>
+        <div class="form-grid">
+          <div>
+            <label for="pf-name">Full name</label>
+            <input type="text" id="pf-name" readonly>
+          </div>
+          <div>
+            <label for="pf-id">Lecturer ID</label>
+            <input type="text" id="pf-id" readonly>
+          </div>
+          <div>
+            <label for="pf-email">Email</label>
+            <input type="email" id="pf-email" readonly>
+          </div>
+          <div>
+            <label for="pf-department">Department</label>
+            <input type="text" id="pf-department" readonly>
+          </div>
+          <div>
+            <label for="pf-school">School</label>
+            <input type="text" id="pf-school" readonly>
+            <div class="school-picker" id="school-picker" hidden>
+              <div class="select-wrap">
+                <select id="pf-school-select"></select>
+              </div>
+              <button type="button" class="btn-secondary" id="pf-school-save">Set school</button>
+            </div>
+          </div>
+          <div>
+            <label for="pf-qualification">Highest qualification</label>
+            <input type="text" id="pf-qualification" maxlength="150" placeholder="e.g. MSc Computer Science">
+          </div>
+          <div>
+            <label for="pf-specialization">Specialization</label>
+            <input type="text" id="pf-specialization" maxlength="150" placeholder="e.g. Database Systems">
+          </div>
+          <div>
+            <label for="pf-office">Office</label>
+            <input type="text" id="pf-office" maxlength="100" placeholder="e.g. Block B, Room 12">
+          </div>
+          <div>
+            <label for="pf-office-hours">Office hours</label>
+            <input type="text" id="pf-office-hours" maxlength="100" placeholder="e.g. Mon &amp; Wed, 14:00–16:00">
+          </div>
+          <div>
+            <label for="pf-phone">Phone</label>
+            <input type="tel" id="pf-phone" placeholder="e.g. +260 97 1234567">
+          </div>
+        </div>
+
+        <label for="pf-bio" class="bio-label">Short bio</label>
+        <textarea id="pf-bio" rows="4" maxlength="1000" placeholder="A few sentences about your teaching and research interests."></textarea>
+        <p class="char-count"><span id="bio-count">0</span>/1000</p>
+
+        <p class="section-hint">Your name, email, department and lecturer ID are managed by the administration. Contact them to change these.</p>
+        <button type="submit" class="btn-primary">Save Changes</button>
+        <p id="profile-message" class="message" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <!-- Account -->
+    <section id="tab-account" class="tab-content">
+      <h2>Change Password</h2>
+      <form id="change-password-form" class="login-form">
+        <label for="current-password">Current Password</label>
+        <input type="password" id="current-password" name="current-password" required>
+
+        <label for="new-password">New Password</label>
+        <input type="password" id="new-password" name="new-password" required minlength="8">
+
+        <label for="confirm-new-password">Confirm New Password</label>
+        <input type="password" id="confirm-new-password" name="confirm-new-password" required>
+
+        <button type="submit" class="btn-primary">Change Password</button>
+        <p id="password-message" class="message" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+  </main>
+
+  <script src="/js/guard.js" data-allow="class_teacher,lecturer"></script>
+  <script src="/js/tabs.js"></script>
+  <script src="/js/change-password.js"></script>
+  <script src="/js/lecturer.js"></script>
+  <script src="/js/lecturer-assignments.js"></script>
+  <script src="/js/results-calc.js"></script>
+  <script src="/js/lecturer-results.js"></script>
+  <script src="/js/lecturer-notes.js"></script>
+  <script src="/js/exam-clearance.js"></script>
+  <script src="/js/notifications.js"></script>
+</body>
+</html>

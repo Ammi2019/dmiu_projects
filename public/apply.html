@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Application Form — DMI-St. Eugene University</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="apply-page">
+  <header class="site-header">
+    <h1>DMISEU Chipata Campus</h1>
+  </header>
+
+  <div class="apply-hero">
+    <p class="apply-eyebrow">Admissions 2026</p>
+    <h2>Application Form</h2>
+    <p>This is the online version of the DMI-St. Eugene University paper application form. Please write names in BLOCK letters. Fields marked <span class="req">*</span> are required.</p>
+  </div>
+
+  <main class="apply-main">
+    <div class="apply-card">
+      <ol class="apply-steps" aria-label="Application steps">
+        <li class="apply-step" data-step="1"><span class="apply-step-num">1</span><span class="apply-step-label">Personal</span></li>
+        <li class="apply-step" data-step="2"><span class="apply-step-num">2</span><span class="apply-step-label">Programme</span></li>
+        <li class="apply-step" data-step="3"><span class="apply-step-num">3</span><span class="apply-step-label">Academic</span></li>
+        <li class="apply-step" data-step="4"><span class="apply-step-num">4</span><span class="apply-step-label">Other details</span></li>
+        <li class="apply-step" data-step="5"><span class="apply-step-num">5</span><span class="apply-step-label">Documents</span></li>
+      </ol>
+
+      <form id="apply-form" class="apply-form-v2" novalidate>
+        <!-- A. PERSONAL DETAILS -->
+        <fieldset class="apply-section" data-section="1">
+          <legend><span class="step-badge">A</span> Personal details</legend>
+          <div class="field-grid">
+            <div class="field field-full">
+              <span class="field-label" id="lbl-title">Title <span class="req">*</span></span>
+              <div class="choice-group" id="title" role="radiogroup" aria-labelledby="lbl-title">
+                <label class="choice"><input type="radio" name="title" value="Mr"><span>Mr.</span></label>
+                <label class="choice"><input type="radio" name="title" value="Ms"><span>Ms.</span></label>
+              </div>
+              <p class="field-error" id="title-error"></p>
+            </div>
+            <div class="field">
+              <label for="surname">Surname <span class="req">*</span></label>
+              <input type="text" id="surname" name="surname" class="upper" autocomplete="family-name" required>
+              <p class="field-error" id="surname-error"></p>
+            </div>
+            <div class="field">
+              <label for="first_name">First name <span class="req">*</span></label>
+              <input type="text" id="first_name" name="first_name" class="upper" autocomplete="given-name" required>
+              <p class="field-error" id="first_name-error"></p>
+            </div>
+            <div class="field">
+              <label for="middle_name">Middle name</label>
+              <input type="text" id="middle_name" name="middle_name" class="upper" autocomplete="additional-name">
+            </div>
+            <div class="field">
+              <label for="dob">Date of birth <span class="req">*</span></label>
+              <input type="date" id="dob" name="dob" required>
+              <p class="field-error" id="dob-error"></p>
+            </div>
+            <div class="field">
+              <span class="field-label" id="lbl-gender">Gender <span class="req">*</span></span>
+              <div class="choice-group" id="gender" role="radiogroup" aria-labelledby="lbl-gender">
+                <label class="choice"><input type="radio" name="gender" value="Male"><span>Male</span></label>
+                <label class="choice"><input type="radio" name="gender" value="Female"><span>Female</span></label>
+              </div>
+              <p class="field-error" id="gender-error"></p>
+            </div>
+            <div class="field">
+              <span class="field-label" id="lbl-marital">Marital status <span class="req">*</span></span>
+              <div class="choice-group" id="marital_status" role="radiogroup" aria-labelledby="lbl-marital">
+                <label class="choice"><input type="radio" name="marital_status" value="Single"><span>Single</span></label>
+                <label class="choice"><input type="radio" name="marital_status" value="Married"><span>Married</span></label>
+              </div>
+              <p class="field-error" id="marital_status-error"></p>
+            </div>
+            <div class="field">
+              <label for="nationality">Nationality <span class="req">*</span></label>
+              <input type="text" id="nationality" name="nationality" value="Zambian" required>
+              <p class="field-error" id="nationality-error"></p>
+            </div>
+            <div class="field">
+              <label for="nrc">NRC / Passport number <span class="req">*</span></label>
+              <input type="text" id="nrc" name="nrc" placeholder="e.g. 123456/78/1" required>
+              <p class="field-error" id="nrc-error"></p>
+            </div>
+            <div class="field">
+              <label for="place_of_birth">Place of birth</label>
+              <input type="text" id="place_of_birth" name="place_of_birth">
+            </div>
+            <div class="field">
+              <label for="postal_address">Postal address</label>
+              <input type="text" id="postal_address" name="postal_address" placeholder="e.g. P.O. Box 511026, Chipata">
+            </div>
+            <div class="field field-full">
+              <label for="residential_address">Residential address <span class="req">*</span></label>
+              <input type="text" id="residential_address" name="residential_address" autocomplete="street-address" required>
+              <p class="field-error" id="residential_address-error"></p>
+            </div>
+            <div class="field">
+              <label for="phone">Mobile number <span class="req">*</span></label>
+              <input type="tel" id="phone" name="phone" autocomplete="tel" placeholder="+260 97 1234567" required>
+              <p class="field-error" id="phone-error"></p>
+            </div>
+            <div class="field">
+              <label for="email">Email address <span class="req">*</span></label>
+              <input type="email" id="email" name="email" autocomplete="email" placeholder="you@example.com" required>
+              <p class="field-error" id="email-error"></p>
+            </div>
+          </div>
+
+          <h4 class="sub-heading">Parent / Guardian / Next of kin</h4>
+          <div class="field-grid">
+            <div class="field">
+              <label for="kin_name">Name <span class="req">*</span></label>
+              <input type="text" id="kin_name" name="kin_name" required>
+              <p class="field-error" id="kin_name-error"></p>
+            </div>
+            <div class="field">
+              <label for="kin_address">Address</label>
+              <input type="text" id="kin_address" name="kin_address">
+            </div>
+            <div class="field">
+              <label for="kin_phone">Mobile number <span class="req">*</span></label>
+              <input type="tel" id="kin_phone" name="kin_phone" placeholder="+260 97 1234567" required>
+              <p class="field-error" id="kin_phone-error"></p>
+            </div>
+            <div class="field">
+              <label for="kin_email">Email address</label>
+              <input type="email" id="kin_email" name="kin_email">
+              <p class="field-error" id="kin_email-error"></p>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- B. PROGRAMME INFORMATION + C. FINANCIAL SUPPORT -->
+        <fieldset class="apply-section" data-section="2">
+          <legend><span class="step-badge">B</span> Programme information</legend>
+          <div class="field-grid">
+            <div class="field field-full">
+              <label for="programme">Programme applied for <span class="req">*</span></label>
+              <div class="select-wrap">
+                <select id="programme" name="programme" required>
+                  <option value="">Loading programmes…</option>
+                </select>
+              </div>
+              <p class="field-error" id="programme-error"></p>
+              <div class="prog-summary" id="prog-summary" hidden>
+                <div class="prog-summary-main">
+                  <span class="level-badge" id="ps-level"></span>
+                  <span class="prog-summary-school" id="ps-school"></span>
+                </div>
+                <dl class="prog-summary-facts">
+                  <div><dt>Duration</dt><dd id="ps-years"></dd></div>
+                  <div><dt>Tuition</dt><dd id="ps-fee"></dd></div>
+                  <div><dt>Due at admission</dt><dd id="ps-admission"></dd></div>
+                </dl>
+                <a href="/#programmes" class="prog-summary-link">See all programmes and fees</a>
+              </div>
+            </div>
+            <div class="field field-full">
+              <label for="second_choice">Second choice</label>
+              <div class="select-wrap">
+                <select id="second_choice" name="second_choice">
+                  <option value="">No second choice</option>
+                </select>
+              </div>
+              <p class="field-error" id="second_choice-error"></p>
+            </div>
+            <div class="field field-full">
+              <span class="field-label" id="lbl-intake">Intake <span class="req">*</span></span>
+              <div class="choice-group" id="intake" role="radiogroup" aria-labelledby="lbl-intake">
+                <label class="choice"><input type="radio" name="intake" value="January - Regular"><span>January – Regular</span></label>
+                <label class="choice"><input type="radio" name="intake" value="April - Regular"><span>April – Regular</span></label>
+                <label class="choice"><input type="radio" name="intake" value="March - Online"><span>March – Online</span></label>
+                <label class="choice"><input type="radio" name="intake" value="August - Online"><span>August – Online</span></label>
+              </div>
+              <p class="field-error" id="intake-error"></p>
+            </div>
+            <div class="field field-full">
+              <span class="field-label" id="lbl-mode">Mode of study <span class="req">*</span></span>
+              <div class="choice-group" id="mode" role="radiogroup" aria-labelledby="lbl-mode">
+                <label class="choice"><input type="radio" name="mode" value="Regular"><span>Regular</span></label>
+                <label class="choice"><input type="radio" name="mode" value="Weekend/Evening"><span>Weekend / Evening</span></label>
+                <label class="choice"><input type="radio" name="mode" value="Term"><span>Term</span></label>
+                <label class="choice"><input type="radio" name="mode" value="E-Learning"><span>E-Learning</span></label>
+              </div>
+              <p class="field-error" id="mode-error"></p>
+            </div>
+            <div class="field field-full">
+              <span class="field-label" id="lbl-campus">Campus of study <span class="req">*</span></span>
+              <div class="choice-group" id="campus" role="radiogroup" aria-labelledby="lbl-campus">
+                <label class="choice"><input type="radio" name="campus" value="Chibombo - Main Campus"><span>Chibombo – Main Campus</span></label>
+                <label class="choice"><input type="radio" name="campus" value="Chipata" checked><span>Chipata</span></label>
+                <label class="choice"><input type="radio" name="campus" value="Woodlands"><span>Woodlands</span></label>
+              </div>
+              <p class="field-error" id="campus-error"></p>
+            </div>
+          </div>
+
+          <h4 class="sub-heading">C. Financial support</h4>
+          <div class="field-grid">
+            <div class="field field-full">
+              <span class="field-label" id="lbl-payer">How will you pay for your university fees? <span class="req">*</span></span>
+              <div class="choice-group" id="payer" role="radiogroup" aria-labelledby="lbl-payer">
+                <label class="choice"><input type="radio" name="payer" value="Parent"><span>Parent</span></label>
+                <label class="choice"><input type="radio" name="payer" value="Sponsor"><span>Sponsor</span></label>
+                <label class="choice"><input type="radio" name="payer" value="Self-Sponsor"><span>Self-Sponsor</span></label>
+                <label class="choice"><input type="radio" name="payer" value="Others"><span>Others</span></label>
+              </div>
+              <p class="field-error" id="payer-error"></p>
+            </div>
+            <div class="field field-full" id="sponsor-field" hidden>
+              <label for="sponsor_details">Name and contact number of parent / sponsor <span class="req">*</span></label>
+              <input type="text" id="sponsor_details" name="sponsor_details" placeholder="e.g. John Banda, +260 96 1234567">
+              <p class="field-error" id="sponsor_details-error"></p>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- D. ACADEMIC DETAILS -->
+        <fieldset class="apply-section" data-section="3">
+          <legend><span class="step-badge">D</span> Academic details</legend>
+          <div class="field">
+            <label for="school_attended">School(s) attended — years and level of attainment <span class="req">*</span></label>
+            <textarea id="school_attended" name="school_attended" rows="2" placeholder="e.g. Chipata Day Secondary School, 2019–2023, Grade 12"></textarea>
+            <p class="field-error" id="school_attended-error"></p>
+          </div>
+
+          <h4 class="sub-heading">Grade 12 / Form 5 grades <span class="req">*</span></h4>
+          <p class="section-hint">Add each 'O' level subject (or equivalent) you passed and the grade you scored (1 = best, 9 = lowest).</p>
+          <div class="qual-head" aria-hidden="true"><span>Subject</span><span>Grade</span><span></span></div>
+          <div id="qualifications-list" data-level="O"></div>
+          <p class="field-error" id="qualifications-error"></p>
+          <button type="button" class="btn-ghost add-row" data-target="qualifications-list"><span aria-hidden="true">＋</span> Add another subject</button>
+
+          <h4 class="sub-heading">Form 6 / 'A' level subjects <span class="muted-label">(if applicable)</span></h4>
+          <div class="qual-head" aria-hidden="true"><span>Subject</span><span>Grade</span><span></span></div>
+          <div id="alevel-list" data-level="A"></div>
+          <p class="field-error" id="alevel-error"></p>
+          <button type="button" class="btn-ghost add-row" data-target="alevel-list"><span aria-hidden="true">＋</span> Add 'A' level subject</button>
+
+          <h4 class="sub-heading">Professional qualifications <span class="muted-label">(courses obtained since leaving school)</span></h4>
+          <div class="prof-head" aria-hidden="true"><span>Institution</span><span>Qualification</span><span>Date obtained</span><span></span></div>
+          <div id="professional-list"></div>
+          <p class="field-error" id="professional-error"></p>
+          <button type="button" class="btn-ghost" id="add-professional"><span aria-hidden="true">＋</span> Add qualification</button>
+        </fieldset>
+
+        <!-- E, F, I -->
+        <fieldset class="apply-section" data-section="4">
+          <legend><span class="step-badge">E</span> Other details</legend>
+          <div class="field-grid">
+            <div class="field field-full">
+              <span class="field-label" id="lbl-needs">Do you have any special needs / disability? <span class="req">*</span></span>
+              <div class="choice-group" id="special_needs" role="radiogroup" aria-labelledby="lbl-needs">
+                <label class="choice"><input type="radio" name="special_needs" value="Yes"><span>Yes</span></label>
+                <label class="choice"><input type="radio" name="special_needs" value="No"><span>No</span></label>
+              </div>
+              <p class="field-error" id="special_needs-error"></p>
+            </div>
+            <div class="field field-full" id="needs-field" hidden>
+              <label for="special_needs_details">If yes, please specify <span class="req">*</span></label>
+              <textarea id="special_needs_details" name="special_needs_details" rows="2"></textarea>
+              <p class="field-error" id="special_needs_details-error"></p>
+            </div>
+            <div class="field field-full">
+              <span class="field-label" id="lbl-accom">F. Do you intend to apply for university accommodation? <span class="req">*</span></span>
+              <div class="choice-group" id="accommodation" role="radiogroup" aria-labelledby="lbl-accom">
+                <label class="choice"><input type="radio" name="accommodation" value="Yes"><span>Yes</span></label>
+                <label class="choice"><input type="radio" name="accommodation" value="No"><span>No</span></label>
+              </div>
+              <p class="field-error" id="accommodation-error"></p>
+            </div>
+            <div class="field field-full">
+              <span class="field-label">I. How did you hear about DMI-St. Eugene University?</span>
+              <div class="choice-group" id="heard_from">
+                <label class="choice"><input type="checkbox" name="heard_from" value="Newspaper/Magazine"><span>Newspaper / Magazine</span></label>
+                <label class="choice"><input type="checkbox" name="heard_from" value="Social Media"><span>Social Media</span></label>
+                <label class="choice"><input type="checkbox" name="heard_from" value="Students/Alumni"><span>Students / Alumni</span></label>
+                <label class="choice"><input type="checkbox" name="heard_from" value="Radio"><span>Radio</span></label>
+                <label class="choice"><input type="checkbox" name="heard_from" value="Television"><span>Television</span></label>
+                <label class="choice"><input type="checkbox" name="heard_from" value="Word of Mouth"><span>Word of Mouth</span></label>
+              </div>
+            </div>
+            <div class="field field-full">
+              <label for="heard_other">Others — specify</label>
+              <input type="text" id="heard_other" name="heard_other">
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- H. CHECKLIST + J. BANK DETAILS + G. DECLARATION -->
+        <fieldset class="apply-section" data-section="5">
+          <legend><span class="step-badge">H</span> Supporting documents</legend>
+          <p class="section-hint">Upload scans of the following. Tick each one you have attached.</p>
+          <ul class="doc-checklist">
+            <li><label><input type="checkbox" name="doc_check" value="Grade 12 Certificate / Statement of Results / Professional Qualification"> Grade 12 Certificate / Statement of Results / Professional Qualification</label></li>
+            <li><label><input type="checkbox" name="doc_check" value="NRC / Passport"> National Registration Card (NRC) / Passport</label></li>
+            <li><label><input type="checkbox" name="doc_check" value="Bank deposit slip"> Bank deposit slip (application fee)</label></li>
+            <li><label><input type="checkbox" name="doc_check" value="Passport size photo"> Recent passport-size colour photo</label></li>
+          </ul>
+
+          <label for="documents" class="dropzone" id="dropzone">
+            <svg class="dropzone-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0l-4 4m4-4l4 4M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="dropzone-title">Drag files here or <u>browse</u></span>
+            <span class="dropzone-sub">PNG, JPEG or PDF · up to 5 files · 5MB each</span>
+          </label>
+          <input type="file" id="documents" name="documents" accept=".png,.jpg,.jpeg,.pdf" multiple class="visually-hidden">
+          <ul class="file-list" id="file-list"></ul>
+          <p class="field-error" id="documents-error"></p>
+
+          <details class="bank-details">
+            <summary>J. Bank details for paying the application fee</summary>
+            <p class="section-hint">Pay only into the university bank account and upload the deposit slip as proof of payment.</p>
+            <div class="table-scroll">
+              <table class="bank-table">
+                <thead><tr><th>Campus</th><th>Bank</th><th>Account name</th><th>Account number</th><th>Branch</th></tr></thead>
+                <tbody>
+                  <tr><td>Chibombo</td><td>Indo Zambia Bank</td><td>Trust of DMI &amp; Collaborators</td><td>0011040002475</td><td>Lusaka Main</td></tr>
+                  <tr><td>Chipata</td><td>Indo Zambia Bank</td><td>St. Eugene DMI University – Chipata</td><td>0122030000235</td><td>Chipata</td></tr>
+                  <tr><td>Woodlands</td><td>Zanaco Bank</td><td>DMI St. Eugene Woodlands</td><td>5189930502366</td><td>Findeco</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </details>
+
+          <h4 class="sub-heading">G. Declaration <span class="req">*</span></h4>
+          <div class="declaration" id="declaration-box">
+            <label class="declaration-check">
+              <input type="checkbox" id="declaration" name="declaration">
+              <span>I, <strong id="decl-name">[your full name]</strong>, hereby certify that all the information given on this form is true, and I recognise that my application will not be processed if it is incomplete.</span>
+            </label>
+            <p class="field-error" id="declaration-error"></p>
+            <div class="field-grid">
+              <div class="field">
+                <label for="signature">Signature — type your full name <span class="req">*</span></label>
+                <input type="text" id="signature" name="signature" autocomplete="off">
+                <p class="field-error" id="signature-error"></p>
+              </div>
+              <div class="field">
+                <label for="sign_date">Date</label>
+                <input type="text" id="sign_date" readonly>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="apply-actions">
+          <p class="apply-note">Check every section before submitting. Incomplete applications will not be processed.</p>
+          <button type="submit" class="btn-cta" id="submit-btn">
+            <span class="btn-cta-label">Submit application</span>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
+        </div>
+        <p id="message" class="message" role="alert"></p>
+      </form>
+
+      <div class="apply-success" id="apply-success" hidden>
+        <div class="success-check" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>Application submitted</h3>
+        <p>Thank you, <strong id="success-name"></strong>. Your application for <strong id="success-programme"></strong> has been received. Your application number is</p>
+        <p class="success-ref" id="success-ref"></p>
+        <p class="section-hint">Keep this number. The admissions office will contact you at <strong id="success-email"></strong>.</p>
+        <div class="success-actions">
+          <a href="/" class="btn-ghost">Back to home</a>
+          <button type="button" class="btn-ghost" id="new-application">Submit another application</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>&copy; 2026 DMISEU Chipata Campus</p>
+  </footer>
+
+  <script src="/js/apply.js"></script>
+</body>
+</html>

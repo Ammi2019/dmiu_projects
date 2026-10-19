@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DMISEU Chipata Campus — Dashboard</title>
+  <title>DMI ST-EUGENE Chipata Campus — Dashboard</title>
   <link rel="stylesheet" href="/css/style.css" />
-  <script src="/js/script.js" defer></script>
+  <script src="/js/tabs.js" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -24,42 +24,143 @@
   </div>
 
   <!-- Tab Content -->
-  <section id="home" class="tab-content active">
-    <h2>Home</h2>
-    <p>Welcome to your campus dashboard.</p>
+  <section id="home" class="tab-content active home-tab">
+    <!-- Hero -->
+    <div class="home-hero">
+      <div class="hero-shapes" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div class="hero-content">
+        <p class="hero-eyebrow">DMI St. Eugene University · Chipata Campus</p>
+        <h2 class="hero-title">Welcome to <span>Chipata Campus</span></h2>
+        <p class="hero-lead">Diploma and Bachelor's programmes in computing, business, social sciences, education and food &amp; nutrition — with applications, courses, results and fees all online.</p>
+        <div class="hero-actions">
+          <a href="/apply.html" class="hero-btn primary">Apply now <span aria-hidden="true">→</span></a>
+          <a href="#portal" class="hero-btn ghost">Sign in to the portal</a>
+          <a href="#programmes" class="hero-link">Browse programmes</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick facts (filled from the programme list) -->
+    <div class="home-stats reveal" id="home-stats">
+      <div class="home-stat"><span class="home-stat-num" data-count="5">5</span><span class="home-stat-label">Schools</span></div>
+      <div class="home-stat"><span class="home-stat-num" data-count="19">19</span><span class="home-stat-label">Programmes</span></div>
+      <div class="home-stat"><span class="home-stat-num">2</span><span class="home-stat-label">Levels — Diploma &amp; Bachelor's</span></div>
+      <div class="home-stat"><span class="home-stat-num" id="home-fee-from">K5,750</span><span class="home-stat-label">Tuition from, per semester</span></div>
+    </div>
+
+    <!-- Schools -->
+    <div class="home-section reveal">
+      <div class="home-section-head">
+        <h3>Our schools</h3>
+        <a href="#programmes" class="home-more">All programmes →</a>
+      </div>
+      <div class="school-grid" id="home-schools"></div>
+    </div>
+
+    <!-- Campus life (from the services listed in the fee structure) -->
+    <div class="home-section reveal">
+      <div class="home-section-head"><h3>Campus life</h3></div>
+      <div class="life-grid">
+        <div class="life-card"><span class="life-icon" aria-hidden="true">🎭</span><strong>Clubs</strong><small>Join student clubs and activities</small></div>
+        <div class="life-card"><span class="life-icon" aria-hidden="true">⚽</span><strong>Sports</strong><small>Keep active with campus sports</small></div>
+        <div class="life-card"><span class="life-icon" aria-hidden="true">🏭</span><strong>Industrial visits</strong><small>See your field in the real world</small></div>
+        <div class="life-card"><span class="life-icon" aria-hidden="true">📚</span><strong>Library &amp; internet</strong><small>Library access and internet for study</small></div>
+        <div class="life-card"><span class="life-icon" aria-hidden="true">💻</span><strong>E-learning portal</strong><small>Notes, assignments and results online</small></div>
+        <div class="life-card"><span class="life-icon" aria-hidden="true">🩺</span><strong>First aid clinic</strong><small>Care when you need it on campus</small></div>
+      </div>
+    </div>
+
+    <!-- Closing call to action -->
+    <div class="home-cta reveal">
+      <div>
+        <h3>Ready to start?</h3>
+        <p>Applying online takes about 10 minutes. You'll get a reference number straight away.</p>
+      </div>
+      <a href="/apply.html" class="hero-btn primary">Start your application <span aria-hidden="true">→</span></a>
+    </div>
   </section>
 
-<section id="portal" class="tab-content">
-  <h2>Portal</h2>
-  <p>Access your campus resources and roles.</p>
+  <section id="portal" class="tab-content">
+    <h2>Portal</h2>
+    <p>Access your campus resources and roles.</p>
 
-  <div class="portal-sections">
-    <a href="/admin-login.html" class="portal-card">
-      <h3>Administration Officers</h3>
-      <p>Sign in to access your administration profile.</p>
-    </a>
+    <div class="portal-sections">
+      <a href="/login.html?portal=staff" class="portal-card">
+        <h3>Administration Officers</h3>
+        <p>Sign in to access your administration profile.</p>
+      </a>
 
-    <a href="/lecturer-login.html" class="portal-card">
-      <h3>Lecturers</h3>
-      <p>Sign in to access your lecturer profile.</p>
-    </a>
+      <a href="/login.html?portal=lecturer" class="portal-card">
+        <h3>Lecturers</h3>
+        <p>Sign in to access your lecturer profile.</p>
+      </a>
 
-    <a href="/student-login.html" class="portal-card">
-      <h3>Students</h3>
-      <p>Sign in to access your student profile.</p>
-    </a>
-  </div>
-</section>
-
+      <a href="/login.html?portal=student" class="portal-card">
+        <h3>Students</h3>
+        <p>Sign in to access your student profile.</p>
+      </a>
+    </div>
+  </section>
 
   <section id="applications" class="tab-content">
-    <h2>Applications</h2>
-    <p>Submit and track your applications here.</p>
+    <div class="apply-cta">
+      <div class="apply-cta-text">
+        <p class="apply-cta-eyebrow">Admissions 2026 now open</p>
+        <h2>Apply to DMISEU Chipata Campus</h2>
+        <p>Choose from Diploma and Bachelor's programmes across five schools. Applying online takes about 10 minutes.</p>
+        <div class="apply-cta-actions">
+          <a href="/apply.html" class="btn-cta">Start your application <span aria-hidden="true">→</span></a>
+          <a href="#programmes" class="btn-outline-light">Browse programmes</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="apply-info">
+      <div class="apply-info-card">
+        <h3>How it works</h3>
+        <ol class="apply-steps-list">
+          <li><span>1</span><div><strong>Choose a programme</strong><small>Pick the course you want to study.</small></div></li>
+          <li><span>2</span><div><strong>Fill in your details</strong><small>Personal details and your school results.</small></div></li>
+          <li><span>3</span><div><strong>Upload documents</strong><small>Certificates or results slip, and your NRC.</small></div></li>
+          <li><span>4</span><div><strong>Get a reference number</strong><small>Keep it — admissions will contact you by email.</small></div></li>
+        </ol>
+      </div>
+      <div class="apply-info-card">
+        <h3>Have these ready</h3>
+        <ul class="apply-checklist">
+          <li>Your grade 12 / GCE results</li>
+          <li>A scan or photo of your certificate or results slip</li>
+          <li>A copy of your NRC</li>
+          <li>An email address you check regularly</li>
+        </ul>
+        <p class="section-hint">Files can be PDF, JPEG or PNG, up to 5MB each.</p>
+      </div>
+    </div>
   </section>
 
-  <section id="programmes" class="tab-content">
-    <h2>Programmes</h2>
-    <p>Explore available programmes and courses.</p>
+  <section id="programmes" class="tab-content programmes-tab">
+    <div class="prog-intro">
+      <h2>Programmes</h2>
+      <p>Diploma and Bachelor's degree programmes, grouped by school. Tuition is shown per semester for face-to-face (regular) study.</p>
+    </div>
+
+    <div class="prog-toolbar">
+      <label for="prog-search" class="visually-hidden">Search programmes</label>
+      <input type="search" id="prog-search" class="prog-search" placeholder="Search programmes, e.g. Computer Science">
+      <div class="prog-levels" role="group" aria-label="Filter by level">
+        <button type="button" class="level-btn active" data-level="all">All</button>
+        <button type="button" class="level-btn" data-level="Diploma">Diploma</button>
+        <button type="button" class="level-btn" data-level="Bachelor">Bachelor's</button>
+      </div>
+    </div>
+    <nav class="school-chips" id="school-chips" aria-label="Jump to school"></nav>
+
+    <div id="schools-list"></div>
+    <p class="empty-state" id="prog-empty" hidden>No programmes match your search.</p>
+
+    <h2 class="fees-heading" id="fees">Other fees</h2>
+    <div class="fee-grid" id="fee-grid"></div>
+    <div class="pay-box" id="pay-box"></div>
   </section>
 
   <section id="about" class="tab-content">
@@ -80,6 +181,7 @@
   <footer class="site-footer">
     <p>&copy; 2026 DMISEU Chipata Campus</p>
   </footer>
+  <script src="/js/programmes.js"></script>
+  <script src="/js/home.js"></script>
 </body>
 </html>
-

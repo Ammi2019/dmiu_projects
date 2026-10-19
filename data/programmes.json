@@ -1,0 +1,237 @@
+{
+  "sourceNote": "Fees as per the DMI-St. Eugene University fee structure for Diploma and Bachelor programmes.",
+  "schools": [
+    {
+      "id": "computing",
+      "name": "School of Computing & Information Technology",
+      "blurb": "Software, systems, networks and digital media.",
+      "programmes": [
+        {
+          "name": "Diploma in Computer Science",
+          "level": "Diploma",
+          "years": 3,
+          "fee": 5750
+        },
+        {
+          "name": "Bachelor of Engineering in Computer Science",
+          "level": "Bachelor",
+          "years": 5,
+          "fee": 9775
+        },
+        {
+          "name": "Bachelor of Science in Computer Science",
+          "level": "Bachelor",
+          "years": 4,
+          "fee": 9200
+        },
+        {
+          "name": "Bachelor of Science in Business Information Systems",
+          "level": "Bachelor",
+          "years": 4,
+          "fee": 9200
+        },
+        {
+          "name": "Bachelor of Science in Graphics, Multimedia & Animation",
+          "level": "Bachelor",
+          "years": 4,
+          "fee": 9200
+        },
+        {
+          "name": "Bachelor of Science in Hardware and Networking",
+          "level": "Bachelor",
+          "years": 4,
+          "fee": 9200
+        }
+      ]
+    },
+    {
+      "id": "business",
+      "name": "School of Business & Management",
+      "blurb": "Accounting, finance, management and marketing.",
+      "programmes": [
+        {
+          "name": "Diploma in Accounts & Finance",
+          "level": "Diploma",
+          "years": 3,
+          "fee": 5750
+        },
+        {
+          "name": "Diploma in Business Management",
+          "level": "Diploma",
+          "years": 3,
+          "fee": 5750
+        },
+        {
+          "name": "Bachelor of Business Administration",
+          "level": "Bachelor",
+          "years": 4,
+          "fee": 8750
+        },
+        {
+          "name": "Bachelor of Commerce in Accounts and Finance",
+          "level": "Bachelor",
+          "years": 4,
+          "fee": 8750
+        },
+        {
+          "name": "Bachelor of Science in Digital Marketing",
+          "level": "Bachelor",
+          "years": 4,
+          "fee": 9200
+        }
+      ]
+    },
+    {
+      "id": "social",
+      "name": "School of Social Sciences",
+      "blurb": "Social work, counselling and community wellbeing.",
+      "programmes": [
+        {
+          "name": "Diploma in Social Work",
+          "level": "Diploma",
+          "years": 3,
+          "fee": 5750
+        },
+        {
+          "name": "Bachelor of Social Work",
+          "level": "Bachelor",
+          "years": 4,
+          "fee": 8750
+        },
+        {
+          "name": "Bachelor of Social Work in Medical Psychiatry",
+          "level": "Bachelor",
+          "years": 4,
+          "fee": 8750
+        },
+        {
+          "name": "Bachelor of Arts in Guidance & Counselling",
+          "level": "Bachelor",
+          "years": 4,
+          "fee": 8750
+        }
+      ]
+    },
+    {
+      "id": "education",
+      "name": "School of Education",
+      "blurb": "Training secondary school teachers.",
+      "programmes": [
+        {
+          "name": "Bachelor of Arts in Secondary Education",
+          "level": "Bachelor",
+          "years": 4,
+          "fee": 8750
+        },
+        {
+          "name": "Bachelor of Science in Secondary Education",
+          "level": "Bachelor",
+          "years": 4,
+          "fee": 9500
+        }
+      ]
+    },
+    {
+      "id": "nutrition",
+      "name": "School of Food & Nutrition Sciences",
+      "blurb": "Food science, nutrition and dietetics.",
+      "programmes": [
+        {
+          "name": "Diploma in Food and Nutrition",
+          "level": "Diploma",
+          "years": 3,
+          "fee": 8000
+        },
+        {
+          "name": "Bachelor of Science in Food and Nutrition",
+          "level": "Bachelor",
+          "years": 4,
+          "fee": 9775
+        }
+      ]
+    }
+  ],
+  "admissionFees": [
+    {
+      "item": "Application fee",
+      "ug": 150,
+      "pg": 200
+    },
+    {
+      "item": "Registration fee",
+      "ug": 250,
+      "pg": 500
+    },
+    {
+      "item": "Identity card",
+      "ug": 100,
+      "pg": 100
+    },
+    {
+      "item": "Caution deposit (refundable at the end of the course)",
+      "ug": 250,
+      "pg": 250
+    }
+  ],
+  "annualFees": [
+    {
+      "item": "Club activities",
+      "amount": 200
+    },
+    {
+      "item": "Sports",
+      "amount": 100
+    },
+    {
+      "item": "Industrial visits",
+      "amount": 200
+    },
+    {
+      "item": "First aid clinic",
+      "amount": 200
+    },
+    {
+      "item": "Library user & internet",
+      "amount": 150
+    },
+    {
+      "item": "Student government",
+      "amount": 100
+    },
+    {
+      "item": "E-learning portal",
+      "amount": 400
+    },
+    {
+      "item": "Student levy",
+      "amount": 75
+    }
+  ],
+  "laterFees": [
+    {
+      "item": "IPTR / Teaching practice (paid at the time of supervision)",
+      "amount": 250
+    },
+    {
+      "item": "Final year project I & II — Diploma & undergraduate degree (paid in final year)",
+      "amount": 1000
+    }
+  ],
+  "payment": {
+    "bank": "INDO Zambia Bank (Main Branch)",
+    "accountName": "Trust of DMI & Collaborators",
+    "accountNo": "0011040002475",
+    "swift": "INZAZMLX"
+  },
+  "contact": {
+    "phones": [
+      "+260 977 613644",
+      "0950 167850",
+      "0975 745957"
+    ],
+    "emails": [
+      "admission@dmiseu.edu.zm",
+      "dmiseuadmission@gmail.com"
+    ]
+  }
+}

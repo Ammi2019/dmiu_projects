@@ -1,10 +1,11 @@
 const express = require('express');
 const pool = require('../db');
-const { requireLogin, requireRole } = require('../middleware/auth');
+const { verifyToken, checkRole } = require('../middleware/auth'); // updated import
 
 const router = express.Router();
 
-router.get('/', requireLogin, async (req, res) => {
+// GET all courses — any logged-in user
+router.get('/', verifyToken, async (req, res) => {
     try {
         const [rows] = await pool.query(
             'SELECT courses.*, departments.name AS department_name FROM courses LEFT JOIN departments ON courses.department_id = departments.department_id'
@@ -16,7 +17,8 @@ router.get('/', requireLogin, async (req, res) => {
     }
 });
 
-router.get('/:id', requireLogin, async (req, res) => {
+// GET single course by ID — any logged-in user
+router.get('/:id', verifyToken, async (req, res) => {
     try {
         const [rows] = await pool.query(
             'SELECT courses.*, departments.name AS department_name FROM courses LEFT JOIN departments ON courses.department_id = departments.department_id WHERE courses.course_id = ?',
@@ -32,7 +34,8 @@ router.get('/:id', requireLogin, async (req, res) => {
     }
 });
 
-router.post('/', requireRole('head_of_department'), async (req, res) => {
+// CREATE course — restricted to head_of_department
+router.post('/', verifyToken, checkRole('head_of_department'), async (req, res) => {
     const { course_code, title, credits, department_id } = req.body;
 
     if (!course_code || !title) {
@@ -51,7 +54,8 @@ router.post('/', requireRole('head_of_department'), async (req, res) => {
     }
 });
 
-router.put('/:id', requireRole('head_of_department'), async (req, res) => {
+// UPDATE course — restricted to head_of_department
+router.put('/:id', verifyToken, checkRole('head_of_department'), async (req, res) => {
     const { course_code, title, credits, department_id } = req.body;
 
     try {
@@ -69,7 +73,8 @@ router.put('/:id', requireRole('head_of_department'), async (req, res) => {
     }
 });
 
-router.delete('/:id', requireRole('head_of_department'), async (req, res) => {
+// DELETE course — restricted to head_of_department
+router.delete('/:id', verifyToken, checkRole('head_of_department'), async (req, res) => {
     try {
         const [result] = await pool.query(
             'DELETE FROM courses WHERE course_id = ?',
@@ -86,3 +91,4 @@ router.delete('/:id', requireRole('head_of_department'), async (req, res) => {
 });
 
 module.exports = router;
+

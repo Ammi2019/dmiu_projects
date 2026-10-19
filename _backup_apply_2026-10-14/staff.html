@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Staff Dashboard — DMISEU Chipata Campus</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="staff-page">
+  <header class="site-header">
+    <h1 id="dash-title">Staff Dashboard</h1>
+  </header>
+
+  <!-- Identity banner -->
+  <section class="id-banner" aria-label="Staff identity">
+    <img id="banner-photo" class="id-photo" src="/images/default-avatar.svg" alt="Profile photo">
+    <div class="id-text">
+      <span class="id-name" id="banner-name">–</span>
+      <span class="id-number"><strong id="banner-role">–</strong></span>
+      <span class="id-dept" id="banner-school"></span>
+    </div>
+  </section>
+
+  <!-- Tabs: data-roles lists who sees each one ("*" = all staff). Unlisted tabs are removed. -->
+  <nav class="tabs" role="tablist">
+    <div class="tab active" data-tab="tab-overview" data-roles="*">Overview</div>
+    <div class="tab" data-tab="tab-applications" data-roles="administrator,principal,registrar,registry_clerk,dean_of_students,head_of_department">Applications</div>
+    <div class="tab" data-tab="tab-approvals" data-roles="administrator">Account approvals</div>
+    <div class="tab" data-tab="tab-users" data-roles="administrator">Users</div>
+    <div class="tab" data-tab="tab-students" data-roles="administrator,principal,registrar,registry_clerk,dean_of_students,head_of_department,accountant">Students</div>
+    <div class="tab" data-tab="tab-lecturers" data-roles="administrator,principal,head_of_department,registrar">Lecturers</div>
+    <div class="tab" data-tab="tab-fees" data-roles="accountant,administrator,principal,registrar">Fees</div>
+    <div class="tab" data-tab="tab-reports" data-roles="accountant,administrator,principal,registrar">Reports</div>
+    <div class="tab" data-tab="tab-registration" data-roles="administrator,principal,registrar,registry_clerk,dean_academic,dean_of_students,head_of_department,accountant">Registration</div>
+    <div class="tab" data-tab="tab-exams" data-roles="administrator,principal,registrar,registry_clerk,dean_academic,dean_of_students,head_of_department,accountant">Exams</div>
+    <div class="tab" data-tab="tab-announce" data-roles="administrator,principal,registrar,dean_of_students,accountant,head_of_department">Announcements</div>
+    <div class="tab" data-tab="tab-profile" data-roles="*">Profile</div>
+    <div class="tab" data-tab="tab-account" data-roles="*">Account</div>
+  </nav>
+
+  <main>
+    <!-- ================= Overview ================= -->
+    <section id="tab-overview" class="tab-content active">
+      <h2>Overview</h2>
+      <p class="section-hint" id="ov-intro"></p>
+      <div class="notice notice-warn" id="ov-notice" hidden></div>
+      <div class="stat-row" id="ov-cards"></div>
+      <p id="ov-message" class="message" role="status" aria-live="polite"></p>
+    </section>
+
+    <!-- ================= Applications ================= -->
+    <section id="tab-applications" class="tab-content">
+      <h2>Applications</h2>
+      <p class="section-hint" id="ap-intro"></p>
+
+      <div class="filter-bar">
+        <div class="seg" role="group" aria-label="Filter by status">
+          <button type="button" class="seg-btn active" data-status="pending">Pending</button>
+          <button type="button" class="seg-btn" data-status="accepted">Accepted</button>
+          <button type="button" class="seg-btn" data-status="rejected">Rejected</button>
+          <button type="button" class="seg-btn" data-status="">All</button>
+        </div>
+        <input type="search" id="ap-search" class="filter-search" placeholder="Search name, email, programme or APP number">
+      </div>
+      <p id="ap-message" class="message" role="status" aria-live="polite"></p>
+
+      <div class="split">
+        <div class="split-list">
+          <div id="ap-list" class="row-list"></div>
+          <p class="empty-state" id="ap-empty" hidden>No applications match.</p>
+        </div>
+
+        <article class="split-detail" id="ap-detail" hidden>
+          <header class="detail-head">
+            <div>
+              <p class="sa-course" id="apd-ref"></p>
+              <h3 id="apd-name"></h3>
+              <p class="sa-meta" id="apd-contact"></p>
+            </div>
+            <span id="apd-status"></span>
+          </header>
+
+          <dl class="details-list compact">
+            <dt>Programme</dt><dd id="apd-programme"></dd>
+            <dt>School</dt><dd id="apd-school"></dd>
+            <dt>Applied</dt><dd id="apd-applied"></dd>
+            <dt>Decision</dt><dd id="apd-decision"></dd>
+            <dt>Account</dt><dd id="apd-account"></dd>
+          </dl>
+
+          <h4>Qualifications</h4>
+          <table class="data-table compact-table"><thead><tr><th>Subject</th><th class="num">Result</th></tr></thead><tbody id="apd-quals"></tbody></table>
+
+          <h4>Supporting documents</h4>
+          <div id="apd-docs" class="doc-list"></div>
+
+          <div class="decide-box" id="apd-decide" hidden>
+            <h4>Decision</h4>
+            <textarea id="apd-decision-note" rows="2" maxlength="1000" placeholder="Reason or comment (optional, saved to the notes)"></textarea>
+            <div class="decide-actions">
+              <button type="button" class="btn-accept" data-decide="accepted">Accept</button>
+              <button type="button" class="btn-reject" data-decide="rejected">Reject</button>
+              <button type="button" class="btn-ghost btn-small" data-decide="pending" id="apd-reopen">Reopen</button>
+            </div>
+          </div>
+
+          <h4>Notes</h4>
+          <ol class="note-list" id="apd-notes"></ol>
+          <form id="apd-note-form" class="note-form">
+            <textarea id="apd-note" rows="2" maxlength="1000" placeholder="Add a note for other staff…"></textarea>
+            <button type="submit" class="btn-primary btn-small">Add note</button>
+          </form>
+          <p id="apd-message" class="message" role="status" aria-live="polite"></p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ================= Account approvals (admin) ================= -->
+    <section id="tab-approvals" class="tab-content">
+      <h2>Account approvals</h2>
+      <p class="section-hint">People who registered on the portal and are waiting for access. Choose a role and approve, or reject.</p>
+      <p id="pa-message" class="message" role="status" aria-live="polite"></p>
+      <div class="table-wrap">
+        <table class="data-table" id="pa-table">
+          <thead><tr><th>Name</th><th>Registered as</th><th>Requested</th><th>Role</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="empty-state" id="pa-empty" hidden>No accounts are waiting for approval.</p>
+    </section>
+
+    <!-- ================= Users (admin) ================= -->
+    <section id="tab-users" class="tab-content">
+      <h2>Users</h2>
+      <div class="filter-bar">
+        <input type="search" id="us-search" class="filter-search" placeholder="Search name, email or role">
+      </div>
+      <p id="us-message" class="message" role="status" aria-live="polite"></p>
+      <div class="table-wrap">
+        <table class="data-table" id="us-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>School</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= Students ================= -->
+    <section id="tab-students" class="tab-content">
+      <h2>Students</h2>
+      <p class="section-hint" id="st-intro"></p>
+      <div class="filter-bar">
+        <div class="select-wrap filter-select" id="st-school-wrap"><select id="st-school"></select></div>
+        <div class="select-wrap filter-select"><select id="st-programme"></select></div>
+        <input type="search" id="st-search" class="filter-search" placeholder="Search name, email or student ID">
+      </div>
+      <p id="st-message" class="message" role="status" aria-live="polite"></p>
+      <div class="table-wrap">
+        <table class="data-table" id="st-table"><thead></thead><tbody></tbody></table>
+      </div>
+      <p class="empty-state" id="st-empty" hidden>No students match.</p>
+      <p class="section-hint" id="st-count"></p>
+    </section>
+
+    <!-- ================= Lecturers ================= -->
+    <section id="tab-lecturers" class="tab-content">
+      <h2>Lecturers</h2>
+      <p class="section-hint" id="lc-intro"></p>
+      <p id="lc-message" class="message" role="status" aria-live="polite"></p>
+      <div class="table-wrap">
+        <table class="data-table" id="lc-table">
+          <thead><tr><th>Name</th><th>School</th><th>Qualification / specialization</th><th>Office</th><th class="num">Assignments</th><th class="num">Result sheets</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="empty-state" id="lc-empty" hidden>No lecturers found.</p>
+    </section>
+
+    <!-- ================= Fees ================= -->
+    <section id="tab-fees" class="tab-content">
+      <h2>Fees</h2>
+
+      <!-- Proofs of payment uploaded by students -->
+      <section class="proof-queue" id="pq">
+        <div class="pq-head">
+          <h3>Proofs of payment <span class="count-pill" id="pq-count" hidden></span></h3>
+          <div class="seg" role="group" aria-label="Filter proofs">
+            <button type="button" class="seg-btn active" data-pq="pending">To verify</button>
+            <button type="button" class="seg-btn" data-pq="verified">Verified</button>
+            <button type="button" class="seg-btn" data-pq="rejected">Rejected</button>
+          </div>
+        </div>
+        <p class="section-hint" id="pq-hint"></p>
+        <p id="pq-message" class="message" role="status" aria-live="polite"></p>
+        <div class="proof-list" id="pq-list"></div>
+        <p class="empty-state" id="pq-empty" hidden></p>
+      </section>
+
+      <!-- Fee reminders -->
+      <details class="asg-post fr-box" id="fr">
+        <summary>Fee reminders <span class="count-pill" id="fr-count" hidden></span></summary>
+        <div class="fr-body">
+          <p class="section-hint" id="fr-status"></p>
+
+          <form id="fr-settings" class="apply-form-v2 fr-settings" novalidate>
+            <div class="field-grid">
+              <div class="field">
+                <label for="fr-pct">Acceptable amount — minimum paid</label>
+                <div class="input-suffix"><input type="number" id="fr-pct" min="1" max="100" step="1"><span>% of fees billed</span></div>
+              </div>
+              <div class="field">
+                <label for="fr-lead">Remind students</label>
+                <div class="input-suffix"><input type="number" id="fr-lead" min="1" max="90" step="1"><span>days before</span></div>
+              </div>
+            </div>
+            <label class="check-inline"><input type="checkbox" id="fr-enabled"> Send automatic reminders before each semester ends and before the next one begins</label>
+            <div class="fr-actions">
+              <button type="submit" class="btn-primary btn-small">Save settings</button>
+              <button type="button" class="btn-ghost btn-small" id="fr-send-now">Send reminders now</button>
+            </div>
+          </form>
+
+          <h4>Semester calendar</h4>
+          <div class="table-wrap">
+            <table class="data-table compact-table" id="fr-sem-table">
+              <thead><tr><th>Semester</th><th>Starts</th><th>Ends</th><th>Reminders go out</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <form id="fr-sem-form" class="apply-form-v2 fr-sem-form" novalidate>
+            <input type="text" id="fr-sem-name" maxlength="40" placeholder="e.g. 2027 Semester 1" aria-label="Semester name">
+            <input type="date" id="fr-sem-start" aria-label="Start date">
+            <input type="date" id="fr-sem-end" aria-label="End date">
+            <button type="submit" class="btn-primary btn-small">Add semester</button>
+          </form>
+          <p id="fr-message" class="message" role="status" aria-live="polite"></p>
+        </div>
+      </details>
+
+      <details class="asg-post" id="fe-bill" data-manage-only>
+        <summary>Bill students from the fee structure</summary>
+        <form id="fe-bill-form" class="apply-form-v2 asg-form" novalidate>
+          <div class="field-grid">
+            <div class="field">
+              <label for="fe-item">What to bill <span class="req">*</span></label>
+              <div class="select-wrap">
+                <select id="fe-item">
+                  <option value="tuition">Semester tuition (by programme)</option>
+                  <option value="annual">Annual fees</option>
+                  <option value="admission">Admission fees (once off)</option>
+                </select>
+              </div>
+              <p class="field-hint" id="fe-item-hint"></p>
+            </div>
+            <div class="field" id="fe-period-field">
+              <label for="fe-period">Semester / year <span class="req">*</span></label>
+              <input type="text" id="fe-period" maxlength="40" placeholder="e.g. 2026 Semester 1">
+            </div>
+            <div class="field">
+              <label for="fe-bill-school">School</label>
+              <div class="select-wrap"><select id="fe-bill-school"></select></div>
+            </div>
+            <div class="field">
+              <label for="fe-bill-programme">Programme</label>
+              <div class="select-wrap"><select id="fe-bill-programme"></select></div>
+            </div>
+          </div>
+          <p class="field-hint">Students who already have this exact charge are skipped, so billing twice is safe.</p>
+          <button type="submit" class="btn-cta asg-submit"><span class="btn-cta-label">Bill students</span><span class="spinner" aria-hidden="true"></span></button>
+          <p id="fe-bill-message" class="message" role="status" aria-live="polite"></p>
+        </form>
+      </details>
+
+      <div class="filter-bar">
+        <div class="select-wrap filter-select"><select id="fe-school"></select></div>
+        <input type="search" id="fe-search" class="filter-search" placeholder="Search name, email or student ID">
+        <label class="check-inline"><input type="checkbox" id="fe-owing"> Only students who owe</label>
+      </div>
+      <p id="fe-message" class="message" role="status" aria-live="polite"></p>
+      <div class="fee-totals" id="fe-totals"></div>
+
+      <div class="split">
+        <div class="split-list">
+          <div class="table-wrap">
+            <table class="data-table" id="fe-table">
+              <thead><tr><th>Student</th><th>Programme</th><th class="num">Billed</th><th class="num">Paid</th><th class="num">Balance</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="empty-state" id="fe-empty" hidden>No students match.</p>
+        </div>
+
+        <article class="split-detail" id="fe-detail" hidden>
+          <header class="detail-head">
+            <div>
+              <p class="sa-course" id="fed-ref"></p>
+              <h3 id="fed-name"></h3>
+              <p class="sa-meta" id="fed-programme"></p>
+            </div>
+            <div class="balance-pill" id="fed-balance"></div>
+          </header>
+
+          <form id="fe-pay-form" class="apply-form-v2 pay-form" data-manage-only novalidate>
+            <h4>Record a payment</h4>
+            <div class="field-grid">
+              <div class="field"><label for="pay-amount">Amount (K) <span class="req">*</span></label><input type="number" id="pay-amount" min="1" step="0.01" inputmode="decimal"></div>
+              <div class="field"><label for="pay-ref">Receipt / bank ref. <span class="req">*</span></label><input type="text" id="pay-ref" maxlength="60"></div>
+              <div class="field"><label for="pay-method">Method</label>
+                <div class="select-wrap"><select id="pay-method">
+                  <option>Bank deposit</option><option>Bank transfer</option><option>Mobile money</option><option>Cash</option><option>Other</option>
+                </select></div>
+              </div>
+              <div class="field"><label for="pay-date">Date paid <span class="req">*</span></label><input type="date" id="pay-date"></div>
+            </div>
+            <button type="submit" class="btn-primary">Record payment</button>
+          </form>
+
+          <details class="charge-box" data-manage-only>
+            <summary>Add another charge</summary>
+            <form id="fe-charge-form" class="apply-form-v2" novalidate>
+              <div class="field-grid">
+                <div class="field"><label for="ch-desc">For</label><input type="text" id="ch-desc" maxlength="200" placeholder="e.g. Final year project fee"></div>
+                <div class="field"><label for="ch-amount">Amount (K)</label><input type="number" id="ch-amount" min="1" step="0.01"></div>
+              </div>
+              <button type="submit" class="btn-ghost btn-small">Add charge</button>
+            </form>
+          </details>
+
+          <p id="fed-message" class="message" role="status" aria-live="polite"></p>
+
+          <h4>Statement</h4>
+          <div class="table-wrap">
+            <table class="data-table statement" id="fed-table">
+              <thead><tr><th>Date</th><th>Details</th><th class="num">Charge</th><th class="num">Payment</th><th class="num">Balance</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ================= Reports ================= -->
+    <section id="tab-reports" class="tab-content">
+      <h2>Reports</h2>
+
+      <div class="report-picker" role="radiogroup" aria-label="Choose a report">
+        <label class="report-option">
+          <input type="radio" name="report" value="collections" checked>
+          <span><strong>Collections</strong><small>Payments received in a period, by method and by day</small></span>
+        </label>
+        <label class="report-option">
+          <input type="radio" name="report" value="outstanding">
+          <span><strong>Outstanding balances</strong><small>Students who still owe, largest balance first</small></span>
+        </label>
+        <label class="report-option">
+          <input type="radio" name="report" value="by-programme">
+          <span><strong>Summary by programme</strong><small>Billed, collected and % collected per programme</small></span>
+        </label>
+        <label class="report-option">
+          <input type="radio" name="report" value="billing">
+          <span><strong>Billing summary</strong><small>What was billed in a period and to how many students</small></span>
+        </label>
+      </div>
+
+      <form id="rp-form" class="apply-form-v2 rp-form" novalidate>
+        <div class="rp-filters">
+          <div class="field" id="rp-from-field"><label for="rp-from">From</label><input type="date" id="rp-from"></div>
+          <div class="field"><label for="rp-to" id="rp-to-label">To</label><input type="date" id="rp-to"></div>
+          <div class="field"><label for="rp-school">School</label><div class="select-wrap"><select id="rp-school"></select></div></div>
+          <div class="field"><label for="rp-programme">Programme</label><div class="select-wrap"><select id="rp-programme"></select></div></div>
+        </div>
+        <div class="rp-quick" aria-label="Quick date ranges">
+          <button type="button" class="chip-btn" data-range="month">This month</button>
+          <button type="button" class="chip-btn" data-range="last-month">Last month</button>
+          <button type="button" class="chip-btn" data-range="year">This year</button>
+          <button type="button" class="chip-btn" data-range="all">All time</button>
+        </div>
+        <button type="submit" class="btn-cta btn-cta-sm"><span class="btn-cta-label">Generate report</span><span class="spinner" aria-hidden="true"></span></button>
+      </form>
+      <p id="rp-message" class="message" role="status" aria-live="polite"></p>
+
+      <!-- The printable report -->
+      <article class="report-output" id="rp-output" hidden>
+        <div class="report-actions">
+          <button type="button" class="btn-ghost btn-small" id="rp-csv">Download CSV (Excel)</button>
+          <button type="button" class="btn-primary btn-small" id="rp-print">Print / Save as PDF</button>
+        </div>
+        <header class="report-head">
+          <p class="report-org">DMI St. Eugene University — Chipata Campus</p>
+          <h3 id="rp-title"></h3>
+          <p class="report-meta" id="rp-meta"></p>
+        </header>
+        <div class="report-summary" id="rp-summary"></div>
+        <div id="rp-extra"></div>
+        <div class="table-wrap">
+          <table class="data-table report-table" id="rp-table"><thead></thead><tbody></tbody><tfoot></tfoot></table>
+        </div>
+        <p class="empty-state" id="rp-empty" hidden>Nothing to show for these filters.</p>
+        <p class="report-foot" id="rp-foot"></p>
+      </article>
+    </section>
+
+    <!-- ================= Semester registration ================= -->
+    <section id="tab-registration" class="tab-content">
+      <h2>Semester Registration</h2>
+      <p class="section-hint">Students register for their next semester from their portal (new students start in Semester I).
+        A registration is approved in order by the Accounts office (minimum fees paid), Class Advisor, Head of Department,
+        Dean of Students and Dean (Academic) — the last approval moves the student up to that semester.</p>
+
+      <details class="asg-post" id="rp-manage" hidden>
+        <summary>Registration windows</summary>
+        <form id="rw-form" class="apply-form-v2 asg-form" novalidate>
+          <div class="field-grid">
+            <div class="field field-full"><label for="rw-name">Window name <span class="req">*</span></label>
+              <input type="text" id="rw-name" name="name" maxlength="120" placeholder="e.g. January 2027 Registration"></div>
+            <div class="field"><label for="rw-pct">Minimum fees paid (%)</label>
+              <input type="number" id="rw-pct" name="min_paid_pct" min="0" max="100" step="1" value="40"></div>
+          </div>
+          <button type="submit" class="btn-cta btn-cta-sm"><span class="btn-cta-label">Open registration</span><span class="spinner" aria-hidden="true"></span></button>
+          <p id="rw-message" class="message" role="status" aria-live="polite"></p>
+        </form>
+        <div class="table-wrap">
+          <table class="data-table compact-table" id="rw-table">
+            <thead><tr><th>Window</th><th class="num">Fees needed</th><th class="num">Registered</th><th class="num">Approved</th><th>Status</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="empty-state" id="rw-empty" hidden>No registration windows yet.</p>
+      </details>
+
+      <details class="asg-post" id="ex-direct" hidden>
+        <summary>Direct entry &amp; exemptions</summary>
+        <p class="section-hint">Exempt a student from semesters they don't have to take — for example Semesters I–II for a
+          direct-entry student who already holds a diploma. A new direct-entry student starts at the first semester they
+          are not exempted from, and registration always skips exempted semesters.</p>
+        <div class="filter-bar">
+          <input type="search" id="xd-search" class="filter-search" placeholder="Find a student by name, register no or student ID">
+        </div>
+        <p id="xd-message" class="message" role="status" aria-live="polite"></p>
+        <div id="xd-results"></div>
+      </details>
+
+      <h3>Approval board</h3>
+      <div id="reg-board" data-clearance-board data-api="/api/registration" data-prefix="rgb" data-global="RegBoard"></div>
+    </section>
+
+    <!-- ================= Exams: eligibility (No Due Certificate) + hall tickets ================= -->
+    <section id="tab-exams" class="tab-content">
+      <h2>Exams &amp; Hall Tickets</h2>
+      <p class="section-hint">A student gets their hall ticket once Accounts, the Class Advisor and Hostel have cleared them,
+        and the Head of Department, Dean of Students and Dean (Academic) have approved — in that order.</p>
+
+      <details class="asg-post" id="ex-manage" hidden>
+        <summary>Exam sessions &amp; timetables</summary>
+        <form id="es-form" class="apply-form-v2 asg-form" novalidate>
+          <div class="field-grid">
+            <div class="field field-full"><label for="es-name">Session name <span class="req">*</span></label>
+              <input type="text" id="es-name" name="name" maxlength="120" placeholder="e.g. Mid-Semester Test – October 2026"></div>
+            <div class="field"><label for="es-type">Type</label>
+              <div class="select-wrap"><select id="es-type" name="exam_type">
+                <option value="mid">Mid-semester test</option><option value="end">End-semester examinations</option>
+              </select></div></div>
+            <div class="field"><label for="es-pct">Minimum fees paid (%)</label>
+              <input type="number" id="es-pct" name="min_paid_pct" min="0" max="100" step="1" value="75"></div>
+            <div class="field"><label for="es-centre">Centre name</label>
+              <input type="text" id="es-centre" name="centre_name" maxlength="60" value="CHIPATA"></div>
+            <div class="field"><label for="es-code">Centre code</label>
+              <input type="text" id="es-code" name="centre_code" maxlength="10" value="33"></div>
+          </div>
+          <button type="submit" class="btn-cta btn-cta-sm"><span class="btn-cta-label">Create session</span><span class="spinner" aria-hidden="true"></span></button>
+          <p id="es-message" class="message" role="status" aria-live="polite"></p>
+        </form>
+
+        <div class="table-wrap">
+          <table class="data-table compact-table" id="es-table">
+            <thead><tr><th>Session</th><th class="num">Fees needed</th><th class="num">Papers</th><th class="num">Tickets</th><th>Status</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="empty-state" id="es-empty" hidden>No exam sessions yet.</p>
+
+        <h3>Programme modules</h3>
+        <p class="section-hint">The modules each programme takes in each semester. Exam timetables and hall tickets
+          only use modules from this list, so every student sees the modules of their own programme and semester.</p>
+        <form id="pm-form" class="apply-form-v2 asg-form" novalidate>
+          <div class="field-grid">
+            <div class="field"><label for="pm-school">School <span class="req">*</span></label>
+              <div class="select-wrap"><select id="pm-school" name="school"></select></div></div>
+            <div class="field"><label for="pm-programme">Programme <span class="req">*</span></label>
+              <div class="select-wrap"><select id="pm-programme" name="programme"></select></div></div>
+            <div class="field"><label for="pm-semester">Semester <span class="req">*</span></label>
+              <div class="select-wrap"><select id="pm-semester" name="semester"></select></div></div>
+            <div class="field"><label for="pm-code">Module code <span class="req">*</span></label>
+              <input type="text" id="pm-code" name="module_code" maxlength="20" placeholder="e.g. 351GM19"></div>
+            <div class="field field-full"><label for="pm-name">Module name <span class="req">*</span></label>
+              <input type="text" id="pm-name" name="module_name" maxlength="150" placeholder="e.g. Computer Graphics"></div>
+          </div>
+          <button type="submit" class="btn-primary">Add module</button>
+          <p id="pm-message" class="message" role="status" aria-live="polite"></p>
+        </form>
+        <div class="table-wrap">
+          <table class="data-table compact-table" id="pm-table">
+            <thead><tr><th>Semester</th><th>Code</th><th>Module</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <p class="empty-state" id="pm-empty" hidden>Choose a programme to see its modules.</p>
+
+        <div id="tt-wrap" hidden>
+          <h3>Timetable</h3>
+          <form id="tt-form" class="apply-form-v2 asg-form" novalidate>
+            <div class="field-grid">
+              <div class="field field-full"><label for="tt-session">Session</label>
+                <div class="select-wrap"><select id="tt-session"></select></div></div>
+              <div class="field"><label for="tt-school">School <span class="req">*</span></label>
+                <div class="select-wrap"><select id="tt-school" name="school"></select></div></div>
+              <div class="field"><label for="tt-programme">Programme <span class="req">*</span></label>
+                <div class="select-wrap"><select id="tt-programme" name="programme"></select></div></div>
+              <div class="field"><label for="tt-semester">Semester <span class="req">*</span></label>
+                <div class="select-wrap"><select id="tt-semester" name="semester"></select></div></div>
+              <div class="field"><label for="tt-module">Module <span class="req">*</span></label>
+                <div class="select-wrap"><select id="tt-module" name="module_id"></select></div>
+                <p class="field-hint" id="tt-module-hint"></p></div>
+              <div class="field"><label for="tt-date">Date <span class="req">*</span></label>
+                <input type="date" id="tt-date" name="exam_date"></div>
+              <div class="field"><label for="tt-time">Start time</label>
+                <input type="time" id="tt-time" name="start_time"></div>
+            </div>
+            <button type="submit" class="btn-primary">Add paper</button>
+            <p id="tt-message" class="message" role="status" aria-live="polite"></p>
+          </form>
+          <div class="table-wrap">
+            <table class="data-table compact-table" id="tt-table">
+              <thead><tr><th>Date</th><th>Code</th><th>Module</th><th>Semester</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="empty-state" id="tt-empty" hidden>No papers on this timetable yet.</p>
+        </div>
+      </details>
+
+      <h3>Clearance board</h3>
+      <div id="exam-board" data-clearance-board data-api="/api/exams" data-prefix="exb" data-global="ExamBoard"></div>
+    </section>
+
+    <!-- ================= Announcements ================= -->
+    <section id="tab-announce" class="tab-content">
+      <h2>Announcements</h2>
+      <p class="section-hint" id="an-intro">Send important information. Everyone you choose gets it as a notification on their dashboard.</p>
+
+      <form id="an-form" class="apply-form-v2 an-form" novalidate>
+        <div class="field-grid">
+          <div class="field">
+            <label for="an-audience">Send to <span class="req">*</span></label>
+            <div class="select-wrap"><select id="an-audience">
+              <option value="students">Students</option>
+              <option value="lecturers">Lecturers</option>
+              <option value="staff">Staff</option>
+              <option value="everyone">Everyone</option>
+            </select></div>
+          </div>
+          <div class="field" id="an-school-field">
+            <label for="an-school">School</label>
+            <div class="select-wrap"><select id="an-school"></select></div>
+          </div>
+          <div class="field" id="an-programme-field">
+            <label for="an-programme">Programme</label>
+            <div class="select-wrap"><select id="an-programme"></select></div>
+          </div>
+          <div class="field field-full">
+            <label for="an-title">Title <span class="req">*</span></label>
+            <input type="text" id="an-title" maxlength="200" placeholder="e.g. Mid-semester exams start on Monday">
+          </div>
+          <div class="field field-full">
+            <label for="an-body">Message <span class="req">*</span></label>
+            <textarea id="an-body" rows="5" maxlength="1500" placeholder="Write the details here…"></textarea>
+            <p class="char-count"><span id="an-count">0</span>/1500</p>
+          </div>
+        </div>
+        <button type="submit" class="btn-cta btn-cta-sm"><span class="btn-cta-label">Send announcement</span><span class="spinner" aria-hidden="true"></span></button>
+        <p id="an-message" class="message" role="status" aria-live="polite"></p>
+      </form>
+
+      <h3>Recent announcements</h3>
+      <div class="an-list" id="an-list"></div>
+      <p class="empty-state" id="an-empty" hidden>No announcements sent yet.</p>
+    </section>
+
+    <!-- ================= Profile ================= -->
+    <section id="tab-profile" class="tab-content">
+      <h2>Profile</h2>
+      <div class="profile-photo-row">
+        <img id="profile-photo-preview" class="profile-photo-preview profile-photo-lg" src="/images/default-avatar.svg" alt="Your profile photo">
+        <div class="profile-meta">
+          <p><strong id="profile-name"></strong></p>
+          <p id="profile-email"></p>
+          <p>Role: <span id="profile-role"></span></p>
+          <label for="profile-photo-input" class="btn-secondary photo-btn">Upload photo</label>
+          <input type="file" id="profile-photo-input" accept=".png,.jpg,.jpeg" class="visually-hidden">
+        </div>
+      </div>
+
+      <form id="profile-form" class="apply-form-v2 profile-form" novalidate>
+        <div class="field-grid">
+          <div class="field"><label for="job_title">Job title</label><input type="text" id="job_title" name="job_title"></div>
+          <div class="field"><label for="phone">Phone</label><input type="text" id="phone" name="phone"></div>
+          <div class="field"><label for="office">Office</label><input type="text" id="office" name="office"></div>
+        </div>
+        <button type="submit" class="btn-primary">Save profile</button>
+        <p id="profile-message" class="message" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+
+    <!-- ================= Account ================= -->
+    <section id="tab-account" class="tab-content">
+      <h2>Change Password</h2>
+      <form id="change-password-form" class="login-form">
+        <label for="current-password">Current Password</label>
+        <input type="password" id="current-password" name="current-password" required>
+        <label for="new-password">New Password</label>
+        <input type="password" id="new-password" name="new-password" required minlength="8">
+        <label for="confirm-new-password">Confirm New Password</label>
+        <input type="password" id="confirm-new-password" name="confirm-new-password" required>
+        <button type="submit" class="btn-primary">Change Password</button>
+        <p id="password-message" class="message" role="status" aria-live="polite"></p>
+      </form>
+    </section>
+  </main>
+
+  <script src="/js/guard.js" data-allow="administrator,head_of_department,principal,dean_of_students,dean_academic,accountant,registrar,registry_clerk"></script>
+  <!-- staff-core removes tabs this role can't use, so it must load before tabs.js -->
+  <script src="/js/staff-core.js"></script>
+  <script src="/js/tabs.js"></script>
+  <script src="/js/change-password.js"></script>
+  <script src="/js/profile.js"></script>
+  <script src="/js/staff-overview.js"></script>
+  <script src="/js/staff-applications.js"></script>
+  <script src="/js/staff-admin.js"></script>
+  <script src="/js/staff-directory.js"></script>
+  <script src="/js/staff-fees.js"></script>
+  <script src="/js/staff-exams.js"></script>
+  <script src="/js/staff-registration.js"></script>
+  <script src="/js/exam-clearance.js"></script>
+  <script src="/js/staff-reports.js"></script>
+  <script src="/js/staff-announcements.js"></script>
+  <script src="/js/staff-reminders.js"></script>
+  <script src="/js/notifications.js"></script>
+</body>
+</html>

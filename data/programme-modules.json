@@ -1,0 +1,10 @@
+{
+  "note": "Starter module list, loaded into the programme_modules table the first time the server starts (only if that table is empty). Add the rest from the staff dashboard: Exams > Programme modules.",
+  "modules": [
+    { "school": "School of Computing & Information Technology", "programme": "Bachelor of Science in Computer Science", "semester": "V", "module_code": "351GM19", "module_name": "COMPUTER GRAPHICS" },
+    { "school": "School of Computing & Information Technology", "programme": "Bachelor of Science in Computer Science", "semester": "V", "module_code": "351NS15", "module_name": "COMPUTER NETWORKS" },
+    { "school": "School of Computing & Information Technology", "programme": "Bachelor of Science in Computer Science", "semester": "V", "module_code": "351GC15", "module_name": "RESEARCH METHODOLOGY" },
+    { "school": "School of Computing & Information Technology", "programme": "Bachelor of Science in Computer Science", "semester": "V", "module_code": "351NS36", "module_name": "ENTREPRENEURSHIP & SMALL SCALE BUSINESS MANAGEMENT" },
+    { "school": "School of Computing & Information Technology", "programme": "Bachelor of Science in Computer Science", "semester": "V", "module_code": "351NS63", "module_name": "DATA WAREHOUSING & DATA MINING" }
+  ]
+}
