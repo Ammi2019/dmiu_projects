@@ -1,7 +1,9 @@
 // Semester registration.
 //
 // Every student starts in Semester I. Each semester the student clicks "Register" in their portal
-// during an open registration window. The registration is then signed, strictly in this order:
+// during an open registration window. Registering bills that semester's fees (tuition, plus annual fees
+// once a year and admission fees once — see utils/semesterFees.js), so payments come off a real balance.
+// The registration is then signed, strictly in this order:
 //   1. Accounts office  — automatic once the student has paid at least the window's minimum % of
 //                         everything billed (40% by default). The accountant can clear or hold manually.
 //   2. Class Advisor    — a lecturer / class teacher in the student's school
@@ -18,6 +20,8 @@ const pool = require('../db');
 const { verifyToken, checkRole } = require('../middleware/auth');
 const { ROLES } = require('../utils/roles');
 const { notify } = require('../utils/notify');
+const semesterFees = require('../utils/semesterFees');
+const { feeStatus } = require('../utils/feeClearance');
 
 const router = express.Router();
 
@@ -100,6 +104,7 @@ async function registrations({ periodId = null, studentId = null, regId = null, 
                 s.student_id, s.user_id, u.name, u.email, s.school, s.programme, s.reg_no, s.current_semester, s.hostel_resident, s.entry_type,
                 (SELECT COALESCE(SUM(amount), 0) FROM fee_entries fe WHERE fe.student_id = s.student_id AND fe.entry_type = 'charge') AS charged,
                 (SELECT COALESCE(SUM(amount), 0) FROM fee_entries fe WHERE fe.student_id = s.student_id AND fe.entry_type = 'payment') AS paid,
+                (SELECT COALESCE(SUM(amount), 0) FROM fee_entries fe WHERE fe.reg_id = r.reg_id AND fe.entry_type = 'charge') AS sem_charged,
                 ${ORDER.map(k => `r.${k}_status, r.${k}_by, DATE_FORMAT(r.${k}_at, '%Y-%m-%d %H:%i') AS ${k}_at, r.${k}_note`).join(',\n                ')}
          FROM semester_registrations r
          JOIN registration_periods rp ON rp.period_id = r.period_id
@@ -122,10 +127,8 @@ async function officerNames(rows) {
 // Checklist for one registration. status: cleared | held | pending | waiting
 function evaluate(row, names = {}) {
     const steps = {};
-    const charged = Number(row.charged) || 0;
-    const paid = Number(row.paid) || 0;
-    const pct = charged > 0 ? Math.floor((paid / charged) * 100) : 100;
-    const needed = Math.ceil((charged * row.min_paid_pct) / 100 - paid);
+    // Earlier semesters paid in full + min % of this semester's fees (see utils/feeClearance.js)
+    const fee = feeStatus({ charged: row.charged, paid: row.paid, semesterCharged: row.sem_charged, minPct: row.min_paid_pct });
     ORDER.forEach(k => {
         const s = {
             key: k, label: STEPS[k].label,
@@ -135,12 +138,11 @@ function evaluate(row, names = {}) {
             note: row[`${k}_note`] || null
         };
         if (k === 'accounts') {
-            Object.assign(s, { paid_pct: pct, required_pct: row.min_paid_pct, charged, paid, auto: !row.accounts_status });
+            Object.assign(s, { paid_pct: fee.paid_pct, required_pct: fee.required_pct, charged: fee.charged, paid: fee.paid,
+                               semester_charged: fee.semester_charged, arrears: fee.arrears, needed: fee.needed, auto: !row.accounts_status });
             if (!row.accounts_status) {
-                s.status = pct >= row.min_paid_pct ? 'cleared' : 'pending';
-                s.detail = pct >= row.min_paid_pct
-                    ? `Paid ${pct}% of fees (needs ${row.min_paid_pct}%)`
-                    : `Paid ${pct}% of fees — needs ${row.min_paid_pct}%. Pay at least K${Math.max(needed, 0).toLocaleString('en-US')} more.`;
+                s.status = fee.cleared ? 'cleared' : 'pending';
+                s.detail = fee.detail;
             } else {
                 s.detail = row.accounts_status === 'cleared' ? 'Cleared by the Accounts office' : 'Held by the Accounts office';
             }
@@ -278,7 +280,14 @@ router.get('/sessions/:id/clearances', verifyToken, checkRole(...BOARD_ROLES), a
             return { ...publicStudent(r), ...ev, actions: ORDER.filter(k => canAct(ctx, k, r, ev)) };
         });
         const f = req.query.filter;
-        if (f === 'mine') students = students.filter(s => s.actions.some(k => ['pending', 'held'].includes(s.steps[k].status)));
+        // "Waiting for me": students I can sign now, plus every student the Accounts office has cleared
+        // whose step for me is still to come, so later approvers can see who is on the way.
+        const mine = ORDER.filter(k => STEPS[k].roles.includes(ctx.role) && k !== 'accounts');
+        if (f === 'mine') students = students.filter(s =>
+            !s.eligible && (
+                s.actions.some(k => ['pending', 'held'].includes(s.steps[k].status)) ||
+                (s.steps.accounts.status === 'cleared' && mine.some(k => ['pending', 'waiting', 'held'].includes(s.steps[k].status)))
+            ));
         else if (f === 'eligible') students = students.filter(s => s.eligible);
         else if (f === 'pending') students = students.filter(s => !s.eligible);
         const approved = rows.filter(r => r.status === 'approved').length;
@@ -505,13 +514,20 @@ router.get('/mine', verifyToken, checkRole('student'), async (req, res) => {
         const next = await targetSemester(me, exemptions.set);
         const max = maxSemesterFor(me.programme);
         const inProgress = rows.some(r => r.status !== 'approved' && r.is_open);
+        const canRegister = next && SEMESTERS.indexOf(next) <= SEMESTERS.indexOf(max);
+        const openPeriods = open.filter(p => !registeredIn.has(p.period_id));
+        // What registering for the next semester will add to the fee statement
+        const feePreview = canRegister && me.programme && openPeriods.length && !inProgress
+            ? await semesterFees.previewFor(me.student_id, me.programme, next, openPeriods[0].min_paid_pct)
+            : null;
         res.json({
             programme: me.programme,
             current_semester: me.current_semester || 'I',
-            next_semester: next && SEMESTERS.indexOf(next) <= SEMESTERS.indexOf(max) ? next : null,
+            next_semester: canRegister ? next : null,
             final_semester: max,
             in_progress: inProgress,
-            open_periods: open.filter(p => !registeredIn.has(p.period_id)),
+            open_periods: openPeriods,
+            fee_preview: feePreview,
             entry_type: me.entry_type || 'regular',
             exemptions: exemptions.list,
             history
@@ -541,11 +557,28 @@ router.post('/mine', verifyToken, checkRole('student'), async (req, res) => {
         if (!semester || SEMESTERS.indexOf(semester) > SEMESTERS.indexOf(max)) {
             return res.status(400).send(`You have completed all ${SEMESTERS.indexOf(max) + 1} semesters of your programme.`);
         }
-        await pool.query('INSERT INTO semester_registrations (period_id, student_id, semester) VALUES (?, ?, ?)',
-            [period.period_id, me.student_id, semester]);
-        res.status(201).send(`Registered for Semester ${semester}. Your registration now goes to the Accounts office, Class Advisor, Head of Department, Dean of Students and Dean (Academic).`);
+        // Register and bill the semester's fees together: either both happen or neither does
+        let items;
+        const conn = await pool.getConnection();
+        try {
+            await conn.beginTransaction();
+            const [r] = await conn.query('INSERT INTO semester_registrations (period_id, student_id, semester) VALUES (?, ?, ?)',
+                [period.period_id, me.student_id, semester]);
+            items = await semesterFees.billRegistration(conn, { regId: r.insertId, studentId: me.student_id, programme: me.programme, semester });
+            await conn.commit();
+        } catch (e) {
+            await conn.rollback().catch(() => {});
+            throw e;
+        } finally {
+            conn.release();
+        }
+        const total = items.reduce((t, i) => t + i.amount, 0);
+        res.status(201).send(`Registered for Semester ${semester}.` +
+            (total ? ` K${total.toLocaleString('en-US')} in fees has been added to your statement.` : '') +
+            ` Next: pay at least ${period.min_paid_pct}% of your fees so the Accounts office can clear you.`);
     } catch (err) {
         console.error(err);
+        if (err.code === 'ER_DUP_ENTRY') return res.status(409).send('You have already registered in this window.');
         res.status(500).send('Failed to register.');
     }
 });
@@ -559,7 +592,8 @@ router.delete('/mine/:regId', verifyToken, checkRole('student'), async (req, res
         if (!r) return res.status(404).send('Registration not found.');
         if (r.status === 'approved' || ORDER.some(k => r[`${k}_by`])) return res.status(409).send('Staff have already started approving this registration, so it can\'t be withdrawn.');
         await pool.query('DELETE FROM semester_registrations WHERE reg_id = ?', [r.reg_id]);
-        res.send('Registration withdrawn.');
+        const removed = await semesterFees.unbillRegistration(pool, r.reg_id);
+        res.send(`Registration withdrawn.${removed ? ' The fees it added have been removed from your statement.' : ''}`);
     } catch (err) {
         console.error(err);
         res.status(500).send('Failed to withdraw the registration.');

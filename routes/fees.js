@@ -13,6 +13,7 @@ const { verifyToken, checkRole } = require('../middleware/auth');
 const { ROLES } = require('../utils/roles');
 const { notify, userIdForStudent } = require('../utils/notify');
 const reminders = require('../utils/feeReminders');
+const { yearOf } = require('../utils/semesterFees');
 
 const multer = require('multer');
 
@@ -190,16 +191,17 @@ router.post('/students/:id/charges', verifyToken, checkRole(...ROLES.FEE_MANAGE)
 });
 
 // BILL many students at once from the fee structure
-// { item: 'tuition' | 'annual' | 'admission', period, school?, programme? }
+// { item: 'tuition' | 'annual' | 'admission', school?, programme? }
+// Uses the same descriptions as automatic billing at registration, so nobody is charged twice:
+//   tuition   -> "Tuition — Semester <student's current semester>"
+//   annual    -> "Annual fees — Year <year of study>"  (once per academic year, I–II = Year 1, III–IV = Year 2, ...)
+//   admission -> "Admission fees (once off)"
 router.post('/bill', verifyToken, checkRole(...ROLES.FEE_MANAGE), async (req, res) => {
     const item = req.body.item;
-    const period = (req.body.period || '').trim();
     const school = (req.body.school || '').trim() || null;
     const programme = (req.body.programme || '').trim() || null;
 
     if (!['tuition', 'annual', 'admission'].includes(item)) return res.status(400).send('Choose what to bill.');
-    if (item !== 'admission' && !period) return res.status(400).send('Enter the semester or year being billed.');
-    if (period.length > 40) return res.status(400).send('Period is too long.');
 
     try {
         const data = loadFeeData();
@@ -209,26 +211,28 @@ router.post('/bill', verifyToken, checkRole(...ROLES.FEE_MANAGE), async (req, re
         // All listed programmes are undergraduate (diploma / bachelor)
         const admissionTotal = data.admissionFees.reduce((t, f) => t + f.ug, 0);
 
-        const description = {
-            tuition: `Tuition — ${period}`,
-            annual: `Annual fees — ${period}`,
+        const descriptionFor = sem => ({
+            tuition: `Tuition — Semester ${sem}`,
+            annual: `Annual fees — Year ${yearOf(sem)}`,
             admission: 'Admission fees (once off)'
-        }[item];
+        }[item]);
 
         const where = [];
         const params = [];
         if (school) { where.push('school = ?'); params.push(school); }
         if (programme) { where.push('programme = ?'); params.push(programme); }
         const [students] = await pool.query(
-            `SELECT student_id, programme FROM students ${where.length ? 'WHERE ' + where.join(' AND ') : ''}`, params);
+            `SELECT student_id, programme, COALESCE(current_semester, 'I') AS current_semester
+             FROM students ${where.length ? 'WHERE ' + where.join(' AND ') : ''}`, params);
 
         const [already] = await pool.query(
-            "SELECT student_id FROM fee_entries WHERE entry_type = 'charge' AND description = ?", [description]);
-        const done = new Set(already.map(r => r.student_id));
+            "SELECT student_id, description FROM fee_entries WHERE entry_type = 'charge'");
+        const done = new Set(already.map(r => `${r.student_id}|${r.description}`));
 
         let billed = 0, skipped = 0, noProgramme = 0, total = 0;
         for (const s of students) {
-            if (done.has(s.student_id)) { skipped++; continue; }
+            const description = descriptionFor(s.current_semester);
+            if (done.has(`${s.student_id}|${description}`)) { skipped++; continue; }
             let amount;
             if (item === 'tuition') {
                 amount = feeOf[s.programme];
@@ -245,7 +249,8 @@ router.post('/bill', verifyToken, checkRole(...ROLES.FEE_MANAGE), async (req, re
             total += amount;
         }
 
-        const parts = [`Billed ${billed} student${billed === 1 ? '' : 's'} (K${total.toLocaleString('en-US')} in total) for "${description}".`];
+        const label = { tuition: "this semester's tuition", annual: "this academic year's annual fees", admission: 'admission fees' }[item];
+        const parts = [`Billed ${billed} student${billed === 1 ? '' : 's'} (K${total.toLocaleString('en-US')} in total) for ${label}.`];
         if (skipped) parts.push(`${skipped} already had this charge and ${skipped === 1 ? 'was' : 'were'} skipped.`);
         if (noProgramme) parts.push(`${noProgramme} ${noProgramme === 1 ? 'has' : 'have'} no programme recorded, so no tuition could be worked out.`);
         res.json({ billed, skipped, noProgramme, total, message: parts.join(' ') });

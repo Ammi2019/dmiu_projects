@@ -379,7 +379,15 @@ const STEPS = [
         )`)],
     // --- Full admission form (matches the paper Application Form, sections A–I) ---
     ['applications.details', () => ensureColumn('applications', 'details', 'TEXT NULL')],
-    ['application_qualifications.level', () => ensureColumn('application_qualifications', 'level', "VARCHAR(10) NOT NULL DEFAULT 'O'")]
+    ['application_qualifications.level', () => ensureColumn('application_qualifications', 'level', "VARCHAR(10) NOT NULL DEFAULT 'O'")],
+
+    // --- Semester fees are billed when a student registers; each charge remembers its registration ---
+    ['fee_entries.reg_id', () => ensureColumn('fee_entries', 'reg_id', 'INT NULL')],
+    // --- Hall ticket granted directly by the Dean (Academic), Administrator, HOD or Dean of Students ---
+    ['exam_clearances.override_by', () => ensureColumn('exam_clearances', 'override_by', 'INT NULL')],
+    ['exam_clearances.override_at', () => ensureColumn('exam_clearances', 'override_at', 'DATETIME NULL')],
+    ['exam_clearances.override_note', () => ensureColumn('exam_clearances', 'override_note', 'VARCHAR(300) NULL')],
+    ['bill existing registrations', () => require('./semesterFees').billExistingRegistrations()]
 ];
 
 // Runs every step in order. Returns the list of steps that failed (empty = all good).

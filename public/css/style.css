@@ -2153,6 +2153,24 @@ main h3 { color: #004080; margin-top: 28px; }
 .reg-box .section-hint { margin: 0; color: #d6e2f1; }
 .reg-box label { color: #d6e2f1; }
 .ex-stepper-5 .ex-stage { min-width: 150px; }
+.reg-guide { list-style: none; padding: 0; margin: 12px 0 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.reg-guide li { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border: 1px solid #dbe3ec; border-radius: 10px; background: #fff; }
+.reg-guide li strong { display: block; font-size: 14px; color: #1d3f73; }
+.reg-guide li small { display: block; margin-top: 3px; font-size: 12px; line-height: 1.45; color: #4a5d72; }
+.reg-guide-num { flex: none; width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 13px; background: #eef2f7; color: #4a5d72; }
+.reg-guide li.now { border-color: #0066cc; background: #eef5fd; }
+.reg-guide li.now .reg-guide-num { background: #0066cc; color: #fff; }
+.reg-guide li.done .reg-guide-num { background: #1e7e34; color: #fff; }
+.reg-fees { flex-basis: 100%; border-top: 1px solid rgba(255,255,255,0.18); padding-top: 12px; }
+.reg-fees h4 { margin: 0 0 8px; font-size: 14px; color: #fff; }
+.reg-fees table { width: 100%; max-width: 460px; border-collapse: collapse; font-size: 14px; }
+.reg-fees td { padding: 4px 0; color: #e6eef7; }
+.reg-fees td.num { text-align: right; white-space: nowrap; }
+.reg-fees tfoot td { color: #9fb6cf; }
+.reg-fees tfoot tr:first-child td { border-top: 1px solid rgba(255,255,255,0.18); padding-top: 8px; }
+.reg-fees .reg-fees-total td { color: #fff; font-weight: bold; }
+.reg-fees p { margin: 10px 0 0; font-size: 14px; color: #e6eef7; }
+@media (max-width: 700px) { .reg-guide { grid-template-columns: 1fr; } }
 .notice-info { background: #eef5fd; border: 1px solid #c6dcf3; color: #1d3f73; margin: 12px 0; }
 .row-exempt td { background: #f7f9fc; color: #4a5d72; }
 

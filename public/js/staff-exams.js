@@ -75,9 +75,10 @@ document.addEventListener('staff:loaded', async () => {
                                module_code: f.module_code.value, module_name: f.module_name.value })
       });
       S.say('pm-message', msg, 'success');
+      const added = { school: f.school.value, programme: f.programme.value, semester: f.semester.value, code: f.module_code.value.trim().toUpperCase() };
       f.module_code.value = ''; f.module_name.value = ''; f.module_code.focus();
       await loadModules();
-      loadModuleChoices();
+      await showInTimetable(added);
     } catch (err) {
       S.say('pm-message', err.message, 'error');
     }
@@ -117,6 +118,25 @@ document.addEventListener('staff:loaded', async () => {
     }
   }
   wirePickers('tt', loadModuleChoices);
+
+  // After a module is added under "Programme modules", point the timetable form at the same
+  // school / programme / semester and pick the new module, ready to give it a date.
+  async function showInTimetable({ school, programme, semester, code }) {
+    const fire = el => el.dispatchEvent(new Event('change'));
+    if ($('tt-school').value !== school) { $('tt-school').value = school; fire($('tt-school')); }
+    if ($('tt-programme').value !== programme) { $('tt-programme').value = programme; fire($('tt-programme')); }
+    $('tt-semester').value = semester;
+    await loadModuleChoices();
+    const opt = [...$('tt-module').options].find(o => o.textContent.startsWith(code + ' '));
+    if (opt) $('tt-module').value = opt.value;
+  }
+  // Modules added in another tab or by another officer: refresh the list when you come back to this page
+  async function refreshModuleChoices() {
+    const keep = $('tt-module').value;
+    await loadModuleChoices();
+    if ([...$('tt-module').options].some(o => o.value === keep)) $('tt-module').value = keep;
+  }
+  window.addEventListener('focus', refreshModuleChoices);
 
   // ---------- sessions ----------
   async function loadSessions(selectId) {

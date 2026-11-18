@@ -148,6 +148,7 @@ router.put('/users/:id/school', async (req, res) => {
         const [result] = await pool.query('UPDATE USERS SET school = ? WHERE user_id = ?', [school.name, req.params.id]);
         if (result.affectedRows === 0) return res.status(404).send('User not found.');
         await pool.query('UPDATE LECTURERS SET school = ? WHERE user_id = ?', [school.name, req.params.id]);
+        await pool.query('UPDATE students SET school = ? WHERE user_id = ?', [school.name, req.params.id]); // keep the student record in step, so school-scoped approvers can see them
         res.send(`School set to the ${school.name}.`);
     } catch (err) {
         console.error(err);

@@ -95,7 +95,15 @@ router.get('/overview', verifyToken, checkRole(...ROLES.STAFF), async (req, res)
             cards.push({ label: 'Fees billed', value: Number(t.billed), money: true, tab: 'tab-fees' });
             cards.push({ label: 'Fees collected', value: Number(t.paid), money: true, tab: 'tab-fees' });
             cards.push({ label: 'Payment proofs to verify', value: await one("SELECT COUNT(*) FROM payment_proofs WHERE status = 'pending'"), tab: 'tab-fees', tone: 'warn' });
-            cards.push({ label: 'Outstanding balance', value: Number(t.billed) - Number(t.paid), money: true, tab: 'tab-fees', tone: (Number(t.billed) - Number(t.paid) > 0 ? 'warn' : '') });
+            // Outstanding = what students still owe (each student's balance counted only if positive);
+            // overpayments are shown separately as credit, so one student's credit never hides another's debt.
+            const [[b]] = await pool.query(
+                `SELECT COALESCE(SUM(CASE WHEN bal > 0 THEN bal END), 0) AS owed,
+                        COALESCE(-SUM(CASE WHEN bal < 0 THEN bal END), 0) AS credit
+                 FROM (SELECT SUM(CASE WHEN entry_type = 'charge' THEN amount ELSE -amount END) AS bal
+                       FROM fee_entries GROUP BY student_id) x`);
+            cards.push({ label: 'Outstanding balance', value: Number(b.owed), money: true, tab: 'tab-fees', tone: (Number(b.owed) > 0 ? 'warn' : '') });
+            if (Number(b.credit) > 0) cards.push({ label: 'Paid in advance (credit)', value: Number(b.credit), money: true, tab: 'tab-fees' });
         }
 
         res.json({ cards });

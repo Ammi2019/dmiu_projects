@@ -8,6 +8,10 @@ tabs.forEach(tab => {
 
     tab.classList.add('active');
     document.getElementById(tab.dataset.tab).classList.add('active');
+
+    // Remember each tab in the browser history, so Back returns to the previous tab
+    const hash = '#' + tab.dataset.tab;
+    if (window.location.hash !== hash) history.pushState({ tab: tab.dataset.tab }, '', hash);
   });
 });
 
@@ -22,3 +26,14 @@ function openTabFromHash() {
 }
 openTabFromHash();
 window.addEventListener('hashchange', openTabFromHash);
+// Back / Forward: open the tab for that history entry (the first tab when the entry has no tab)
+window.addEventListener('popstate', () => {
+  if (window.location.hash) return openTabFromHash();
+  const first = document.querySelector('.tab');
+  if (!first) return;
+  tabs.forEach(t => t.classList.remove('active'));
+  contents.forEach(c => c.classList.remove('active'));
+  first.classList.add('active');
+  const panel = document.getElementById(first.dataset.tab);
+  if (panel) panel.classList.add('active');
+});

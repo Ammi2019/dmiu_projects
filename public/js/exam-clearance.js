@@ -177,6 +177,21 @@ document.querySelectorAll('[data-clearance-board]').forEach(root => (function (r
     return `<td class="ex-step">${chip(st.status)}${detail}${signed}${note}${buttons}</td>`;
   }
 
+  // Hall ticket granted directly (Dean Academic, Administrator, HOD, Dean of Students), whatever the requirements
+  function grantCell(st, session) {
+    if (st.outcome !== undefined && st.outcome !== null) return '';
+    let html = '';
+    if (st.granted) {
+      html += `<small class="ex-note" title="${esc(st.granted.reason || '')}">Granted by ${esc(st.granted.by)}${st.granted.at ? ' · ' + esc(st.granted.at.slice(0, 10)) : ''}: “${esc(st.granted.reason || '')}”</small>`;
+    }
+    if (st.can_grant && session.is_open) {
+      html += !st.ticket_no
+        ? `<div class="ex-actions"><button type="button" class="btn-small btn-secondary" data-grant="${st.student_id}" title="Issue the hall ticket even if requirements are not met">Grant hall ticket</button></div>`
+        : st.granted ? `<div class="ex-actions"><button type="button" class="btn-small btn-ghost" data-revoke-grant="${st.student_id}">Revoke</button></div>` : '';
+    }
+    return html;
+  }
+
   function render(session) {
     const steps = meta.steps;
     $('exb-table').querySelector('thead').innerHTML = `
@@ -202,15 +217,17 @@ document.querySelectorAll('[data-clearance-board]').forEach(root => (function (r
         ${steps.map(s => stepCell(st, s.key)).join('')}
         <td>${st.outcome
           ? (st.outcome.ok ? `<span class="badge badge-ok">${esc(st.outcome.label)}</span><small class="muted">${esc(st.outcome.sub)}</small>` : `<span class="muted">${esc(st.outcome.label)}</span>`)
-          : st.ticket_no ? `<span class="badge badge-ok">${esc(st.ticket_no)}</span><small class="muted">${esc((st.issued_at || '').slice(0, 10))}</small>` : '<span class="muted">Not issued</span>'}</td>
+          : st.ticket_no ? `<span class="badge badge-ok">${esc(st.ticket_no)}</span><small class="muted">${esc((st.issued_at || '').slice(0, 10))}</small>`
+            : '<span class="muted">Not issued</span>'}
+          ${grantCell(st, session)}</td>
       </tr>`).join('');
 
     const filter = $('exb-filter').value;
     $('exb-empty').hidden = students.length > 0;
     $('exb-empty').textContent = filter === 'mine'
-      ? 'Nobody is waiting for your clearance right now.'
+      ? 'Nobody is waiting for your clearance right now. Students appear here once the Accounts office has cleared them.'
       : meta.kind === 'registration' ? 'No registrations match. Students appear here once they click Register in their portal.'
-      : 'No students match. Students appear here once their programme has papers on this session\'s timetable.';
+      : 'No students match.';
 
     // Bulk clear: for the steps I sign, students currently pending on that step
     const bulk = $('exb-bulk');
@@ -267,6 +284,43 @@ document.querySelectorAll('[data-clearance-board]').forEach(root => (function (r
         say(err.message, 'error');
         btn.disabled = false;
       }
+      return;
+    }
+
+    if (btn.dataset.grant) {
+      const st = students.find(s => String(s.student_id) === btn.dataset.grant);
+      const id = $('exb-session').value;
+      openDialog({
+        title: `Grant hall ticket to ${st.name}`,
+        hint: 'This issues the hall ticket now, even if fees or other clearance steps are not complete. Your name and reason are kept on record.',
+        fields: `<label for="${P}-grant-reason">Reason <span class="req">*</span></label>
+                 <textarea id="${P}-grant-reason" name="reason" maxlength="300" rows="3" required placeholder="e.g. Payment plan agreed with the Dean of Students"></textarea>`,
+        ok: 'Grant hall ticket',
+        submit: async fd => {
+          const r = await api(`${API}/sessions/${id}/clearances/${st.student_id}/grant`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: fd.get('reason') })
+          });
+          say(r.message, 'success');
+          loadBoard();
+        }
+      });
+      return;
+    }
+
+    if (btn.dataset.revokeGrant) {
+      const st = students.find(s => String(s.student_id) === btn.dataset.revokeGrant);
+      const id = $('exb-session').value;
+      openDialog({
+        title: `Revoke ${st.name}'s hall ticket?`,
+        hint: `Hall ticket ${st.ticket_no} was granted directly. Revoking it means the student can no longer print it.`,
+        fields: '',
+        ok: 'Revoke hall ticket',
+        submit: async () => {
+          const r = await api(`${API}/sessions/${id}/clearances/${st.student_id}/grant`, { method: 'DELETE' });
+          say(r.message, 'success');
+          loadBoard();
+        }
+      });
       return;
     }
 

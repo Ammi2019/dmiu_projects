@@ -9,6 +9,7 @@
 // Each student gets each reminder at most once per semester (logged in fee_reminders_sent).
 const pool = require('../db');
 const { notify } = require('./notify');
+const { feeStatus } = require('./feeClearance');
 
 const money = n => 'K' + (Math.round(Number(n) * 100) / 100).toLocaleString('en-US', { maximumFractionDigits: 2 });
 const localDate = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -24,7 +25,10 @@ async function studentsBelowThreshold(minPaidPct) {
     const [rows] = await pool.query(
         `SELECT s.student_id, s.user_id, u.name,
                 COALESCE(SUM(CASE WHEN fe.entry_type = 'charge' THEN fe.amount END), 0) AS billed,
-                COALESCE(SUM(CASE WHEN fe.entry_type = 'payment' THEN fe.amount END), 0) AS paid
+                COALESCE(SUM(CASE WHEN fe.entry_type = 'payment' THEN fe.amount END), 0) AS paid,
+                (SELECT COALESCE(SUM(x.amount), 0) FROM fee_entries x
+                  WHERE x.entry_type = 'charge'
+                    AND x.reg_id = (SELECT MAX(sr.reg_id) FROM semester_registrations sr WHERE sr.student_id = s.student_id)) AS sem_charged
          FROM students s
          JOIN USERS u ON u.user_id = s.user_id
          JOIN fee_entries fe ON fe.student_id = s.student_id
@@ -33,17 +37,20 @@ async function studentsBelowThreshold(minPaidPct) {
     );
     return rows
         .map(r => {
+            // Same rule as Accounts clearance: earlier semesters in full + min % of the current semester
             const billed = Number(r.billed), paid = Number(r.paid);
-            const required = (billed * minPaidPct) / 100;
-            return { ...r, billed, paid, balance: billed - paid, required, short: Math.max(required - paid, 0) };
+            const fee = feeStatus({ charged: billed, paid, semesterCharged: r.sem_charged, minPct: minPaidPct });
+            return { ...r, billed, paid, balance: billed - paid, arrears: fee.arrears, short: fee.needed };
         })
-        .filter(r => r.balance > 0 && r.paid < r.required);
+        .filter(r => r.balance > 0 && r.short > 0);
 }
 
 function messageFor(student, settings, context) {
     const lines = [
         `Your fee balance is ${money(student.balance)} (billed ${money(student.billed)}, paid ${money(student.paid)}).`,
-        `Students should have paid at least ${settings.min_paid_pct}% of their fees. Please pay at least ${money(student.short)} more to reach this.`
+        student.arrears > 0
+            ? `${money(student.arrears)} is still owed from earlier semesters. Students should have paid earlier semesters in full and at least ${settings.min_paid_pct}% of this semester's fees. Please pay at least ${money(student.short)} more to reach this.`
+            : `Students should have paid at least ${settings.min_paid_pct}% of this semester's fees. Please pay at least ${money(student.short)} more to reach this.`
     ];
     if (context) lines.unshift(context);
     lines.push('After paying, upload your receipt in the Fees tab so the Accounts office can update your balance.');

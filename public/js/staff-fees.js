@@ -36,12 +36,12 @@ document.addEventListener('staff:loaded', async () => {
     function updateItem() {
       const item = itemSel.value;
       document.getElementById('fe-item-hint').textContent = {
-        tuition: "Each student is charged their own programme's tuition for one semester.",
-        annual: `${S.kwacha(annual)} per student (clubs, sports, library, e-learning and other annual fees).`,
+        tuition: "Each student is charged their own programme's tuition for their current semester (skipped if already billed).",
+        annual: `${S.kwacha(annual)} per student, once per academic year of study (skipped if already billed for that year).`,
         admission: `${S.kwacha(admission)} per student (application, registration, ID card and caution deposit).`
       }[item];
-      document.getElementById('fe-period-field').hidden = item === 'admission';
-      document.getElementById('fe-period').placeholder = item === 'annual' ? `e.g. ${d.getFullYear()}` : `e.g. ${d.getFullYear()} Semester 1`;
+      // The period comes from each student's current semester / year of study, so it is not typed in
+      document.getElementById('fe-period-field').hidden = true;
     }
     itemSel.addEventListener('change', updateItem);
     updateItem();
@@ -55,9 +55,8 @@ document.addEventListener('staff:loaded', async () => {
         school: billSchool.value,
         programme: billProg.value
       };
-      if (body.item !== 'admission' && !body.period) return S.say('fe-bill-message', 'Enter the semester or year being billed.', 'error');
       const who = body.programme || body.school || 'ALL students';
-      if (!confirm(`Bill ${who} for ${itemSel.selectedOptions[0].text}${body.period ? ' — ' + body.period : ''}?`)) return;
+      if (!confirm(`Bill ${who} for ${itemSel.selectedOptions[0].text}?`)) return;
 
       const btn = e.target.querySelector('button[type="submit"]');
       btn.disabled = true; btn.classList.add('loading');
@@ -85,7 +84,8 @@ document.addEventListener('staff:loaded', async () => {
     if (document.getElementById('fe-owing').checked) params.set('owing', '1');
     try {
       const { students } = await S.api(`/api/fees/students?${params}`);
-      const t = students.reduce((a, s) => ({ c: a.c + s.charged, p: a.p + s.paid, b: a.b + s.balance }), { c: 0, p: 0, b: 0 });
+      // Outstanding = only what students still owe (a student in credit doesn't reduce what others owe)
+      const t = students.reduce((a, s) => ({ c: a.c + s.charged, p: a.p + s.paid, b: a.b + Math.max(s.balance, 0) }), { c: 0, p: 0, b: 0 });
       document.getElementById('fe-totals').innerHTML = `
         <span>Billed <strong>${S.kwacha(t.c)}</strong></span>
         <span>Collected <strong>${S.kwacha(t.p)}</strong></span>
@@ -98,7 +98,7 @@ document.addEventListener('staff:loaded', async () => {
           <td class="wrap"><small>${esc(s.programme || '–')}</small></td>
           <td class="num">${S.kwacha(s.charged)}</td>
           <td class="num">${S.kwacha(s.paid)}</td>
-          <td class="num ${s.balance > 0 ? 'owing' : (s.balance < 0 ? 'credit' : '')}"><strong>${S.kwacha(s.balance)}</strong></td>
+          <td class="num ${s.balance > 0 ? 'owing' : (s.balance < 0 ? 'credit' : '')}"><strong>${s.balance < 0 ? `${S.kwacha(-s.balance)} credit` : S.kwacha(s.balance)}</strong></td>
         </tr>`).join('');
     } catch (err) {
       S.say('fe-message', err.message, 'error');

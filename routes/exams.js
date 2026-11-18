@@ -13,6 +13,10 @@
 //     5. Dean of Students
 //     6. Dean (Academic)  — this approval issues the Hall Ticket, which the student can print.
 //
+// Granting a hall ticket directly: the Dean (Academic), Administrator, Head of Department (own school only)
+// and Dean of Students can issue a hall ticket whether or not the student has met the requirements above.
+// They must give a reason, which is recorded with their name; the grant can be revoked the same way.
+//
 // The Administrator can act on any step. Exam sessions and timetables are set up by the
 // Registrar, the Dean (Academic) or the Administrator.
 const express = require('express');
@@ -20,6 +24,7 @@ const pool = require('../db');
 const { verifyToken, checkRole } = require('../middleware/auth');
 const { ROLES } = require('../utils/roles');
 const { notify, userIdForStudent } = require('../utils/notify');
+const { feeStatus } = require('../utils/feeClearance');
 
 const router = express.Router();
 
@@ -33,6 +38,7 @@ const STEPS = {
 };
 const STEP_KEYS = Object.keys(STEPS);
 const DEPARTMENTS = ['accounts', 'advisor', 'hostel'];
+const GRANT_ROLES = ['dean_academic', 'administrator', 'head_of_department', 'dean_of_students'];
 const BOARD_ROLES = [...ROLES.EXAM_VIEW, 'lecturer', 'class_teacher'];
 
 const clean = v => (typeof v === 'string' && v.trim() !== '' ? v.trim() : null);
@@ -86,8 +92,10 @@ const papersFor = (timetable, student) => timetable.filter(t =>
 
 // Students taking a session (their programme has a timetable in it), with fees and clearance row.
 async function studentsForSession(sessionId, { school = null, programme = null, q = null, studentId = null } = {}) {
-    const where = ['s.programme IN (SELECT DISTINCT programme FROM exam_timetable WHERE session_id = ?)'];
-    const params = [sessionId];
+    // Every student with a programme is on the board, so clearance can start before the timetable is complete.
+    // (A hall ticket is still only issued once the student's programme and semester have papers.)
+    const where = ['s.programme IS NOT NULL', "u.status = 'approved'"];
+    const params = [];
     if (school) { where.push('s.school = ?'); params.push(school); }
     if (programme) { where.push('s.programme = ?'); params.push(programme); }
     if (studentId) { where.push('s.student_id = ?'); params.push(studentId); }
@@ -100,13 +108,17 @@ async function studentsForSession(sessionId, { school = null, programme = null, 
                 s.hostel_resident,
                 (SELECT COALESCE(SUM(amount), 0) FROM fee_entries fe WHERE fe.student_id = s.student_id AND fe.entry_type = 'charge') AS charged,
                 (SELECT COALESCE(SUM(amount), 0) FROM fee_entries fe WHERE fe.student_id = s.student_id AND fe.entry_type = 'payment') AS paid,
+                (SELECT COALESCE(SUM(fe.amount), 0) FROM fee_entries fe
+                  WHERE fe.entry_type = 'charge'
+                    AND fe.reg_id = (SELECT MAX(sr.reg_id) FROM semester_registrations sr WHERE sr.student_id = s.student_id)) AS sem_charged,
                 c.accounts_status, c.accounts_by, DATE_FORMAT(c.accounts_at, '%Y-%m-%d %H:%i') AS accounts_at, c.accounts_note,
                 c.advisor_status,  c.advisor_by,  DATE_FORMAT(c.advisor_at,  '%Y-%m-%d %H:%i') AS advisor_at,  c.advisor_note,
                 c.hostel_status,   c.hostel_by,   DATE_FORMAT(c.hostel_at,   '%Y-%m-%d %H:%i') AS hostel_at,   c.hostel_note,
                 c.hod_status,      c.hod_by,      DATE_FORMAT(c.hod_at,      '%Y-%m-%d %H:%i') AS hod_at,      c.hod_note,
                 c.dos_status,      c.dos_by,      DATE_FORMAT(c.dos_at,      '%Y-%m-%d %H:%i') AS dos_at,      c.dos_note,
                 c.academic_status, c.academic_by, DATE_FORMAT(c.academic_at, '%Y-%m-%d %H:%i') AS academic_at, c.academic_note,
-                c.ticket_no, DATE_FORMAT(c.issued_at, '%Y-%m-%d %H:%i') AS issued_at
+                c.ticket_no, DATE_FORMAT(c.issued_at, '%Y-%m-%d %H:%i') AS issued_at,
+                c.override_by, DATE_FORMAT(c.override_at, '%Y-%m-%d %H:%i') AS override_at, c.override_note
          FROM students s
          JOIN USERS u ON u.user_id = s.user_id
          LEFT JOIN exam_clearances c ON c.student_id = s.student_id AND c.session_id = ?
@@ -121,6 +133,7 @@ async function studentsForSession(sessionId, { school = null, programme = null, 
 async function officerNames(rows) {
     const ids = new Set();
     rows.forEach(r => STEP_KEYS.forEach(k => r[`${k}_by`] && ids.add(r[`${k}_by`])));
+    rows.forEach(r => r.override_by && ids.add(r.override_by));
     if (ids.size === 0) return {};
     const [users] = await pool.query('SELECT user_id, name FROM USERS WHERE user_id IN (?)', [[...ids]]);
     return Object.fromEntries(users.map(u => [u.user_id, u.name]));
@@ -130,10 +143,8 @@ async function officerNames(rows) {
 //   status: cleared | held | pending | waiting (earlier steps not done) | na (not applicable)
 function evaluate(row, session, names = {}) {
     const steps = {};
-    const charged = Number(row.charged) || 0;
-    const paid = Number(row.paid) || 0;
-    const pct = charged > 0 ? Math.floor((paid / charged) * 100) : 100;
-    const needed = Math.ceil((charged * session.min_paid_pct) / 100 - paid);
+    // Earlier semesters paid in full + min % of the current semester's fees (see utils/feeClearance.js)
+    const fee = feeStatus({ charged: row.charged, paid: row.paid, semesterCharged: row.sem_charged, minPct: session.min_paid_pct });
 
     STEP_KEYS.forEach(k => {
         const s = {
@@ -145,16 +156,12 @@ function evaluate(row, session, names = {}) {
             note: row[`${k}_note`] || null
         };
         if (k === 'accounts') {
-            s.paid_pct = pct;
-            s.required_pct = session.min_paid_pct;
-            s.charged = charged;
-            s.paid = paid;
+            Object.assign(s, { paid_pct: fee.paid_pct, required_pct: fee.required_pct, charged: fee.charged, paid: fee.paid,
+                               semester_charged: fee.semester_charged, arrears: fee.arrears, needed: fee.needed });
             s.auto = !row.accounts_status;
             if (!row.accounts_status) {
-                s.status = pct >= session.min_paid_pct ? 'cleared' : 'pending';
-                s.detail = pct >= session.min_paid_pct
-                    ? `Paid ${pct}% of fees (needs ${session.min_paid_pct}%)`
-                    : `Paid ${pct}% of fees — needs ${session.min_paid_pct}%. Pay at least K${Math.max(needed, 0).toLocaleString('en-US')} more.`;
+                s.status = fee.cleared ? 'cleared' : 'pending';
+                s.detail = fee.detail;
             } else {
                 s.detail = row.accounts_status === 'cleared' ? 'Cleared by the Accounts office' : 'Held by the Accounts office';
             }
@@ -178,9 +185,23 @@ function evaluate(row, session, names = {}) {
         departments_cleared: departmentsCleared,
         eligible: !!row.ticket_no,
         ticket_no: row.ticket_no || null,
-        issued_at: row.issued_at || null
+        issued_at: row.issued_at || null,
+        // Set when the hall ticket was granted directly, without all requirements being met
+        granted: row.override_by
+            ? { by: names[row.override_by] || 'Staff', at: row.override_at, reason: row.override_note }
+            : null
     };
 }
+
+// May this person grant (or revoke a granted) hall ticket for this student?
+function canGrant(ctx, student) {
+    if (!GRANT_ROLES.includes(ctx.role)) return false;
+    if (ctx.role === 'head_of_department' && (!ctx.school || ctx.school !== student.school)) return false;
+    return true;
+}
+
+const ticketNumber = (session, student) =>
+    `HT${String(new Date().getFullYear()).slice(-2)}-${String(session.session_id).padStart(2, '0')}-${String(student.student_id).padStart(5, '0')}`;
 
 // Can this person act on this step for this student right now?
 function canAct(ctx, stepKey, student, evaluation) {
@@ -221,6 +242,7 @@ router.get('/sessions', verifyToken, checkRole(...BOARD_ROLES), async (req, res)
             can_manage: ROLES.EXAM_MANAGE.includes(req.user.role),
             can_edit_details: ROLES.EXAM_DETAILS.includes(req.user.role),
             can_mark_hostel: ROLES.HOSTEL.includes(req.user.role),
+            can_grant: GRANT_ROLES.includes(req.user.role),
             steps: STEP_KEYS.map(k => ({ key: k, label: STEPS[k].label, mine: STEPS[k].roles.includes(req.user.role) }))
         });
     } catch (err) {
@@ -435,13 +457,19 @@ router.get('/sessions/:id/clearances', verifyToken, checkRole(...BOARD_ROLES), a
         let students = rows.map(r => {
             const ev = evaluate(r, session, names);
             const actions = STEP_KEYS.filter(k => canAct(ctx, k, r, ev));
-            return { ...publicStudent(r), ...ev, actions, papers: papersFor(timetable, r).length };
+            return { ...publicStudent(r), ...ev, actions, can_grant: canGrant(ctx, r), papers: papersFor(timetable, r).length };
         });
 
         const filter = req.query.filter;
         if (filter === 'mine') {
-            // Only steps still waiting on me
-            students = students.filter(s => s.actions.some(k => ['pending', 'held'].includes(s.steps[k].status)));
+            // Students I can sign now, plus every student the Accounts office has cleared whose
+            // step for me is still to come, so later approvers can see who is on the way.
+            const mine = STEP_KEYS.filter(k => STEPS[k].roles.includes(ctx.role) && k !== 'accounts');
+            students = students.filter(s =>
+                !s.eligible && (
+                    s.actions.some(k => ['pending', 'held'].includes(s.steps[k].status)) ||
+                    (s.steps.accounts.status === 'cleared' && mine.some(k => ['pending', 'waiting', 'held'].includes(s.steps[k].status)))
+                ));
         } else if (filter === 'eligible') {
             students = students.filter(s => s.eligible);
         } else if (filter === 'pending') {
@@ -498,9 +526,7 @@ router.put('/sessions/:id/clearances/:studentId/:step', verifyToken, checkRole(.
         const status = decision === 'reset' ? null : decision;
         const issueTicket = stepKey === 'academic' && decision === 'cleared';
         const revokeTicket = stepKey === 'academic' && decision !== 'cleared';
-        const ticketNo = issueTicket
-            ? `HT${String(new Date().getFullYear()).slice(-2)}-${String(session.session_id).padStart(2, '0')}-${String(row.student_id).padStart(5, '0')}`
-            : null;
+        const ticketNo = issueTicket ? ticketNumber(session, row) : null;
 
         await pool.query(
             `INSERT INTO exam_clearances (session_id, student_id, ${stepKey}_status, ${stepKey}_by, ${stepKey}_at, ${stepKey}_note)
@@ -527,7 +553,9 @@ router.put('/sessions/:id/clearances/:studentId/:step', verifyToken, checkRole(.
                 link: 'tab-exams'
             });
         } else if (revokeTicket && row.ticket_no) {
-            await pool.query('UPDATE exam_clearances SET ticket_no = NULL, issued_at = NULL WHERE session_id = ? AND student_id = ?',
+            await pool.query(
+                `UPDATE exam_clearances SET ticket_no = NULL, issued_at = NULL, override_by = NULL, override_at = NULL, override_note = NULL
+                 WHERE session_id = ? AND student_id = ?`,
                 [session.session_id, row.student_id]);
         }
 
@@ -548,6 +576,67 @@ router.put('/sessions/:id/clearances/:studentId/:step', verifyToken, checkRole(.
     } catch (err) {
         console.error(err);
         res.status(500).send('Failed to save the clearance.');
+    }
+});
+
+// GRANT a hall ticket directly, whether or not the requirements are met { reason }
+// Dean (Academic), Administrator, Dean of Students, and the HOD for students in their own school.
+router.post('/sessions/:id/clearances/:studentId/grant', verifyToken, checkRole(...GRANT_ROLES), async (req, res) => {
+    const reason = clean(req.body.reason);
+    if (!reason) return res.status(400).send('Give a reason for granting the hall ticket. It is kept on record.');
+    if (reason.length > 300) return res.status(400).send('The reason is too long (300 characters max).');
+    try {
+        const session = await getSession(req.params.id);
+        if (!session) return res.status(404).send('Exam session not found.');
+        if (!session.is_open) return res.status(409).send('This exam session is closed.');
+        const ctx = await contextFor(req);
+        const [row] = await studentsForSession(session.session_id, { studentId: Number(req.params.studentId) || -1 });
+        if (!row) return res.status(404).send('This student is not sitting this exam session.');
+        if (!canGrant(ctx, row)) return res.status(403).send('You can only grant hall tickets to students in your own school.');
+        if (row.ticket_no) return res.status(409).send(`${row.name} already has hall ticket ${row.ticket_no}.`);
+        // The ticket still has to list the student's papers
+        if (!row.current_semester) return res.status(409).send(`Set ${row.name}'s current semester first, so the hall ticket lists the right modules.`);
+        const papers = papersFor(await timetableFor(session.session_id, row.programme), row);
+        if (papers.length === 0) return res.status(409).send(`There are no Semester ${row.current_semester} papers for ${row.programme} on this timetable.`);
+
+        const ticketNo = ticketNumber(session, row);
+        await pool.query(
+            `INSERT INTO exam_clearances (session_id, student_id, ticket_no, issued_at, override_by, override_at, override_note)
+             VALUES (?, ?, ?, NOW(), ?, NOW(), ?)
+             ON DUPLICATE KEY UPDATE ticket_no = VALUES(ticket_no), issued_at = VALUES(issued_at),
+                 override_by = VALUES(override_by), override_at = VALUES(override_at), override_note = VALUES(override_note)`,
+            [session.session_id, row.student_id, ticketNo, ctx.id, reason]);
+        notify([row.user_id], {
+            category: 'exams',
+            title: `Your hall ticket for ${session.name} is ready`,
+            body: 'Your hall ticket has been issued. Open the Exams tab to print it.',
+            link: 'tab-exams'
+        });
+        res.json({ message: `Hall ticket ${ticketNo} granted to ${row.name}.` });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Failed to grant the hall ticket.');
+    }
+});
+
+// REVOKE a hall ticket that was granted directly
+router.delete('/sessions/:id/clearances/:studentId/grant', verifyToken, checkRole(...GRANT_ROLES), async (req, res) => {
+    try {
+        const session = await getSession(req.params.id);
+        if (!session) return res.status(404).send('Exam session not found.');
+        const ctx = await contextFor(req);
+        const [row] = await studentsForSession(session.session_id, { studentId: Number(req.params.studentId) || -1 });
+        if (!row) return res.status(404).send('This student is not sitting this exam session.');
+        if (!canGrant(ctx, row)) return res.status(403).send('You can only revoke hall tickets for students in your own school.');
+        if (!row.override_by) return res.status(409).send('This hall ticket was not granted directly. Use Revoke on the Dean (Academic) step instead.');
+        await pool.query(
+            `UPDATE exam_clearances SET ticket_no = NULL, issued_at = NULL, override_by = NULL, override_at = NULL, override_note = NULL
+             WHERE session_id = ? AND student_id = ?`,
+            [session.session_id, row.student_id]);
+        res.json({ message: `Hall ticket revoked for ${row.name}.` });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Failed to revoke the hall ticket.');
     }
 });
 
@@ -617,6 +706,7 @@ router.get('/mine', verifyToken, checkRole('student'), async (req, res) => {
             out.push({
                 session,
                 ...evaluate(row, session, names),
+                granted: null,   // the staff reason for a direct grant stays internal
                 timetable: await timetableFor(session_id, me.programme, me.current_semester)
             });
         }

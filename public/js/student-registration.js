@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const esc = v => String(v ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   const $ = id => document.getElementById(id);
   const say = (text, type) => { const el = $('sr2-message'); el.textContent = text; el.className = `message show ${type}`; };
+  const kwacha = n => 'K' + Number(n || 0).toLocaleString('en-US', { maximumFractionDigits: 2 });
   const STATUS = { cleared: ['ok', 'Cleared', '✓'], held: ['danger', 'On hold', '!'], pending: ['late', 'Pending', '…'], waiting: ['full', 'Waiting', '·'] };
 
   function progress(r) {
@@ -23,7 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
             ${steps.every(s => !s.by) ? `<button type="button" class="btn-ghost btn-small" data-withdraw="${r.reg_id}">Withdraw</button>` : ''}
           </div>
         </header>
-        ${r.steps.accounts.status !== 'cleared' ? `<div class="notice notice-warn">${esc(r.steps.accounts.detail || '')}</div>` : ''}
+        ${r.steps.accounts.status !== 'cleared' ? `<div class="notice notice-warn">${esc(r.steps.accounts.detail || '')}
+          ${r.steps.accounts.charged > 0 ? ` <a href="#tab-fees">Pay or upload your receipt in the Fees tab →</a>` : ''}</div>` : ''}
         <ol class="ex-stepper ex-stepper-5">
           ${steps.map(s => `
             <li class="ex-stage stage-${s.status}">
@@ -36,6 +38,27 @@ document.addEventListener('DOMContentLoaded', () => {
             </li>`).join('')}
         </ol>
       </article>`;
+  }
+
+  // What registering will add to the fee statement, and the least the student must pay
+  function feeSummary(f) {
+    if (!f) return '';
+    const rows = f.items.map(i => `<tr><td>${esc(i.description)}</td><td class="num">${kwacha(i.amount)}</td></tr>`).join('');
+    return `
+      <div class="reg-fees">
+        <h4>Fees this registration adds</h4>
+        <table>
+          <tbody>${rows || '<tr><td colspan="2">No new fees: these have already been billed.</td></tr>'}</tbody>
+          <tfoot>
+            <tr><td>Added now</td><td class="num">${kwacha(f.new_total)}</td></tr>
+            <tr><td>Already paid</td><td class="num">− ${kwacha(f.paid)}</td></tr>
+            <tr class="reg-fees-total"><td>${f.balance_after < 0 ? 'In credit after registering' : 'Balance after registering'}</td><td class="num">${kwacha(Math.abs(f.balance_after))}</td></tr>
+          </tfoot>
+        </table>
+        <p>${f.min_to_pay > 0
+          ? `To be cleared by Accounts you need to pay at least <strong>${kwacha(f.min_to_pay)}</strong> more (any balance from earlier semesters in full, plus ${f.min_paid_pct}% of this semester's fees).`
+          : `You have already paid at least ${f.min_paid_pct}% of this semester's fees, so the Accounts office will clear you automatically.`}</p>
+      </div>`;
   }
 
   async function load() {
@@ -59,6 +82,21 @@ document.addEventListener('DOMContentLoaded', () => {
           You don't register for exempted semesters.
         </div>` : '';
 
+      // The three stages of registering, with the student's current stage highlighted
+      const live = d.history.find(h => h.status !== 'approved' && h.is_open);
+      const stage = !live ? 1 : live.steps.accounts.status !== 'cleared' ? 2 : 3;
+      const minPct = live ? live.steps.accounts.required_pct : (d.open_periods[0] ? d.open_periods[0].min_paid_pct : 40);
+      const guide = [
+        ['Register for the semester', 'Your semester fees are added to your fee statement.'],
+        [`Pay at least ${minPct}% of your fees`, 'Pay at the bank, then upload the receipt in the Fees tab. The Accounts office clears you once it is verified.'],
+        ['Get approved', 'Class Advisor → Head of Department → Dean of Students → Dean (Academic). The last approval completes your registration.']
+      ];
+      $('sr2-guide').innerHTML = `<ol class="reg-guide">${guide.map(([t, sub], i) => `
+        <li class="${i + 1 < stage ? 'done' : i + 1 === stage && (live || d.next_semester) ? 'now' : ''}">
+          <span class="reg-guide-num">${i + 1 < stage ? '✓' : i + 1}</span>
+          <span><strong>${esc(t)}</strong><small>${esc(sub)}</small></span>
+        </li>`).join('')}</ol>`;
+
       // Register button
       const reg = $('sr2-register');
       if (d.in_progress) {
@@ -78,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 : esc(p.name)} · You need at least ${p.min_paid_pct}% of your fees paid.</p>
             </div>
             <button type="button" class="btn-cta btn-cta-sm" id="sr2-go" data-period="${p.period_id}"><span class="btn-cta-label">Register for Semester ${esc(d.next_semester)}</span><span class="spinner" aria-hidden="true"></span></button>
+            ${feeSummary(d.fee_preview)}
           </div>`;
       }
 
